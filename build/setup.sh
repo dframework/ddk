@@ -64,7 +64,7 @@ ddk_ready_ddk_env_home(){
         ddk_exit 1 "ERROR: [${DDK_ENV_HOME}/build/make.sh] is not found."
         return $?
     fi
-    export DDK_GLOBAL_ENV_HOME="${3}"
+    export DDK_GLOBAL_ENV_HOME="${DDK_ENV_HOME}"
 }
 
 ddk_ready_arguments_2(){
