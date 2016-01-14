@@ -16,7 +16,7 @@ BUILD_STATIC_LIBRARY(){
     ddk_build_objects
 
     tmp_ck_last_obj="${LOCAL_MODULE}.${DDC_STATIC_LIB_EXT}"
-    tmp_ck_last_cmd="${DDC_AR} ${tmp_ck_last_obj} ${tmp_objs} ${tmp_static_libs_a}"
+    tmp_ck_last_cmd="${DDC_AR} ${tmp_ck_last_obj} ${tmp_objs} ${tmp_static_libs}"
     ddk_build_last_object
 
     if [ $tmp_can_last_make -eq 0 ]; then
@@ -267,7 +267,7 @@ ddk_build_objects(){
         tmp_objs="${tmp_objs} ${tmp_obj_nm}"
     done
 
-    for tmp_x in $tmp_static_libs_a
+    for tmp_x in $tmp_static_libs
     do
         tmp_time_x=$(ddk_call_mtime "$tmp_x")
         if [ $tmp_time_max -lt $tmp_time_x ]; then
