@@ -54,7 +54,7 @@ ddk_cflags_add_includes(){
           ddk_cflags_include_paths="${ddk_cflags_include_paths} ${tmp_p}"
         fi
       else
-        ddk_exit 1 "error: add-include ${tmp_x} : ${tmp_p}"
+        ddk_exit 1 "error: Not add include ${tmp_x} : ${tmp_p}"
       fi
     done
 }
