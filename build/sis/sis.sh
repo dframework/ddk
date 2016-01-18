@@ -111,8 +111,10 @@ ddk_sis_start(){
     fi
     tmp_curpwd=`pwd`
 
-    cp $SIS_SELF $SIS_WORK_DIR
-    ddk_exit $? "error: cp $SIS_SELF $SIS_WORK_DIR"
+    if [ $SIS_PWD_EQ -eq 0 ]; then
+        cp $SIS_SELF $SIS_WORK_DIR
+        ddk_exit $? "error: cp $SIS_SELF $SIS_WORK_DIR"
+    fi
     cd $SIS_WORK_DIR
 
     if [ $SIS_STDOUT -eq 0 ]; then
@@ -161,11 +163,15 @@ ddk_sis_start(){
     if [ $SIS_MAKE_WORKDIR -eq 1 ]; then
         if [ $SIS_SAVE_ARCH -eq 0 ]; then
             if [ $SIS_SAVE_WDIR -eq 0 ]; then
-                rm -rf $SIS_WORK_DIR
+                if [ $SIS_PWD_EQ -eq 0 ]; then
+                    rm -rf $SIS_WORK_DIR
+                fi
             fi
         else
             if [ $SIS_SAVE_WDIR -eq 0 ]; then
-                rm $SIS_WORK_DIR/$SIS_SELF_NM
+                if [ $SIS_PWD_EQ -eq 0 ]; then
+                    rm $SIS_WORK_DIR/$SIS_SELF_NM
+                fi
             fi
         fi
     else
@@ -173,7 +179,9 @@ ddk_sis_start(){
             rm -rf $SIS_WORK_DIR/$SIS_SELF_ORGNM
         fi
         if [ $SIS_SAVE_WDIR -eq 0 ]; then
-            rm $SIS_WORK_DIR/$SIS_SELF_NM
+            if [ $SIS_PWD_EQ -eq 0 ]; then
+                rm $SIS_WORK_DIR/$SIS_SELF_NM
+            fi
         fi
     fi
 }
@@ -182,16 +190,23 @@ ddk_sis_start(){
 SIS_TEMP_ARGS=$@
 SIS_SELF=$0
 SIS_PWD=`pwd`
+SIS_PWD_EQ=0
 SIS_WORK_DIR=$SIS_PWD
-
 tmp_test=`expr "$SIS_SELF" : '\(^.\)[[:print:]]\+$'`
 if [ "$tmp_test" = "." ]; then
     SIS_SELF="$SIS_PWD/$SIS_SELF"
 fi
-
 SIS_SELF_NM=`expr "$SIS_SELF" : '^[[:print:]]\+/\([[:print:]]\+$\)'`
 SIS_SELF_PATH=`expr "$SIS_SELF" : '\(^[[:print:]]\+\)/[[:print:]]\+$'`
 SIS_SELF_ORGNM=`expr "$SIS_SELF_NM" : '\(^[[:print:]]\+\)\.sh$'`
+
+cd $SIS_SELF_PATH
+tmp_test_pwd=`pwd`
+if [ "$tmp_test_pwd" = "$SIS_PWD" ]; then
+    SIS_PWD_EQ=1
+fi
+cd $SIS_PWD
+
 xi=0
 for x in $SIS_TEMP_ARGS
 do
@@ -206,7 +221,6 @@ do
     fi
     xi=$(($xi+1))
 done
-
 
 echo ""
 echo "  -=-=-=-=--=-=-=-=-=-=-=-=--=-=-=-=-"
