@@ -106,8 +106,9 @@ call_package_start(){
 
     case "$tmp_pkg_dst" in
     bin) ;;
+    lib) ;;
     dev) ;;
-    *) ddk_exit 1 "  Has not pkg-dst (bin,dev)" ;;
+    *) ddk_exit 1 "  Has not pkg-dst (bin,lib,dev)" ;;
     esac
 
     case "$tmp_pkg_target" in
@@ -244,8 +245,9 @@ call_package_install(){
 
     case "$tmp_pkg_dst" in
     bin) ;;
+    lib) ;;
     dev) ;;
-    *) ddk_exit 1 "  Has not pkg-dst (bin,dev)" ;;
+    *) ddk_exit 1 "  Has not pkg-dst (bin,lib,dev)" ;;
     esac
 
     case "$tmp_pkg_target" in

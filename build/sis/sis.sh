@@ -129,8 +129,10 @@ ddk_sis_start(){
         ddk_exit 1 "error $SIS_SELF_ORGNM is not directory."
     fi
 
-    $SIS_SELF_ORGNM/DDKSIS/presis
-    ddk_exit $? "error: $SIS_SELF_ORGNM/DDKSIS/presis"
+    if test -f $SIS_SELF_ORGNM/DDKSIS/presis ; then
+        $SIS_SELF_ORGNM/DDKSIS/presis
+        ddk_exit $? "error: $SIS_SELF_ORGNM/DDKSIS/presis"
+    fi
 
     cd $SIS_SELF_ORGNM
     tmp_test_pwd=`pwd`
@@ -156,8 +158,10 @@ ddk_sis_start(){
     done
     cd ../
 
-    $SIS_SELF_ORGNM/DDKSIS/postsis
-    ddk_exit $? "error: $SIS_SELF_ORGNM/DDKSIS/postsis"
+    if test -f $SIS_SELF_ORGNM/DDKSIS/postsis ; then
+        $SIS_SELF_ORGNM/DDKSIS/postsis
+        ddk_exit $? "error: $SIS_SELF_ORGNM/DDKSIS/postsis"
+    fi
 
     cd $tmp_curpwd
     if [ $SIS_MAKE_WORKDIR -eq 1 ]; then
