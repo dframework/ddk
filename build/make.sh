@@ -10,11 +10,13 @@ DDK_ENV_OUT=""
 DDK_ENV_DEBUG=0
 DDK_ENV_CALL_TARGET=""
 DDK_ENV_TARGETS=""
+DDK_ENV_TARGET_NM=""
 DDK_ENV_TARGET_OS="linux"
 DDK_ENV_TARGET_CPU="x86_64"
 DDK_ENV_TARGET_PATH=""
 DDK_ENV_TARGET_BUILD=""
 DDK_ENV_TARGET_WORKING=""
+DDK_ENV_TARGET_PKG=""
 DDK_ENV_NO_PRINT=0
 DDK_ENV_PRINT_OS=0
 DDK_ENV_PRINT_CPU=0
@@ -141,7 +143,9 @@ ddkinfo(){
     echo "  DDK_ENV_TARGET_PATH    : [${DDK_ENV_TARGET_PATH}]"
     echo "  DDK_ENV_TARGET_BUILD   : [${DDK_ENV_TARGET_BUILD}]"
     echo "  DDK_ENV_TARGET_WORKING : [${DDK_ENV_TARGET_WORKING}]"
+    echo "  DDK_ENV_TARGET_PKG     : [${DDK_ENV_TARGET_PKG}]"
     echo "  DDK_ENV_CMD            : [${DDK_ENV_CMD}]"
+    echo ""
     echo "  DDC_PWD                : [${DDC_PWD}]"
     echo ""
     echo "  DDK_CC                 : [${DDK_CC}]"
@@ -271,6 +275,7 @@ ddk_ready_arguments_2(){
 ddk_ready_arguments_1(){
     if [ $1 -eq 0 ]; then
         DDK_ENV_CMD="${2}"
+        DDK_ENV_CMD=`echo "${DDK_ENV_CMD}" | sed -e 's/-/_/g'`
         return 0
     fi
 
@@ -301,11 +306,12 @@ ddk_ready_base_environments(){
     if [ $DDK_ENV_DEBUG -eq 1 ]; then
         debug="-debug"
     fi
-    path="${DDK_ENV_TARGET_OS}-${DDK_ENV_TARGET_CPU}${debug}"
+    DDK_ENV_TARGET_NM="${DDK_ENV_TARGET_OS}-${DDK_ENV_TARGET_CPU}${debug}"
     DDK_ENV_OUT="${DDK_ENV_HOME}/out"
-    DDK_ENV_TARGET_PATH="${DDK_ENV_OUT}/${path}"
+    DDK_ENV_TARGET_PATH="${DDK_ENV_OUT}/${DDK_ENV_TARGET_NM}"
     DDK_ENV_TARGET_BUILD="${DDK_ENV_TARGET_PATH}/build"
     DDK_ENV_TARGET_WORKING="${DDK_ENV_TARGET_PATH}/working"
+    DDK_ENV_TARGET_PKG="${DDK_ENV_TARGET_PATH}/packages"
 
     if [ "${DDK_CROSS_HOME}" = "" ]; then
       cross_prefix="${DDK_CROSS_PREFIX}"
@@ -324,6 +330,7 @@ ddk_make_base_environments(){
     ddk_make_dir "${DDK_ENV_TARGET_PATH}"
     ddk_make_dir "${DDK_ENV_TARGET_BUILD}"
     ddk_make_dir "${DDK_ENV_TARGET_WORKING}"
+    ddk_make_dir "${DDK_ENV_TARGET_PKG}"
 }
 
 ddk_target_environments(){
@@ -362,11 +369,11 @@ ddk_target_start(){
 }
 
 ddk_exit(){
-    if [ "${2}" != "" ]; then
-        echo "${2}"
-        echo ""
-    fi
     if [ $1 -ne 0 ]; then
+        if [ "${2}" != "" ]; then
+           echo "${2}"
+           echo ""
+        fi
         exit $1
     fi
 }

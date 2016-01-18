@@ -121,7 +121,7 @@ ddk_load_dir(){
 
 ddk_load_dest(){
     tmp_load_dest_hasmk=0
-    ddk_compile_mk "${1}"
+    ddk_compile_mk "${1}" "Dframework.mk"
 
     if [ $? -eq 0 ]; then
         tmp_load_dest_hasmk=1
@@ -137,18 +137,24 @@ ddk_load_dest(){
     ddk_load_dir "${1}"
 
     if [ $tmp_load_dest_hasmk -eq 1 ]; then
-        ddk_load_mk "${1}"
+        ddk_load_mk "${1}" "Dframework.mk"
     fi
  
     mkres=$?
 }
 
 ddk_call_make(){
-    if [ "${1}" = "" ]; then
-        args="--ddk-home=${DDK_ENV_HOME}"
-    else
-        args="${1} --ddk-home=${DDK_ENV_HOME}"
+    args=""
+
+    if [ "${DDK_ENV_CMD}" != "" ]; then
+        args="${DDK_ENV_CMD}"
     fi
+    
+    if [ "${1}" != "" ]; then
+        args="${args} ${1}"
+    fi
+
+    args="${args} --ddk-home=${DDK_ENV_HOME}"
     args="${args} --arg-cmd=${2}"
     args="${args} --arg-dest=${3}"
 

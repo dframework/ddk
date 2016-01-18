@@ -11,6 +11,10 @@ CLEAR_VARS(){
 }
 
 BUILD_STATIC_LIBRARY(){
+    if [ "${DDK_ENV_CMD}" != "" ]; then
+        return 0
+    fi
+
     tmp_ck_method="static"
     ddk_build_version
     ddk_build_objects
@@ -34,6 +38,10 @@ BUILD_STATIC_LIBRARY(){
 }
 
 BUILD_SHARED_LIBRARY(){
+    if [ "${DDK_ENV_CMD}" != "" ]; then
+        return 0
+    fi
+
     tmp_ck_method="shared"
     ddk_build_version
     ddk_build_objects
@@ -92,6 +100,10 @@ BUILD_SHARED_LIBRARY(){
 }
 
 BUILD_EXCUTABLE(){
+    if [ "${DDK_ENV_CMD}" != "" ]; then
+        return 0
+    fi
+
     tmp_ck_method="executable"
     ddk_build_version
     ddk_build_objects
@@ -214,7 +226,7 @@ ddk_build_src(){
 
     # -----------------------------------------------------
     tmp_toolname=$(ddk_build_get_toolname "${tmp_ext}")
-    echo "    ${tmp_toolname}: ${LOCAL_MODULE} <= ${tmp_src_input}"
+    echo "    ${tmp_toolname}: [${DDK_ENV_TARGET_NM}] ${LOCAL_MODULE} <= ${tmp_src_input}"
 
     tmp_tool=$(ddk_build_get_tool "${tmp_ext}")
     #tmp_cflags=$(ddk_build_get_cflags)

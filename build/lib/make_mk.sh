@@ -12,13 +12,44 @@ ddk_compile_clear_cmd_prefix(){
 }
 
 ddk_compile_call_func(){
-  tmp_nm=`expr "${tmp_call}" : '\([a-zA-Z0-9_]\+\)[[:blank:]]*[[:print:]]*'`
+  tmp_nm=`expr "${tmp_call}" : '\([a-zA-Z0-9_-]\+\)[[:blank:]]*[[:print:]]*'`
+  tmp_va=`expr "${tmp_call}" : '[a-zA-Z0-9_-]\+[[:blank:]]*\([[:print:]]*\)'`
+
+  if [ "$tmp_nm" = "" ]; then
+      ddk_exit 1 "syntax error(100): $tmp_call"
+  fi
+
   case "${tmp_nm}" in
   call)
     ddk_compile_add "${tmp_val}"
   ;;
+  mk)
+    ddk_compile_add "call_make_dir \"${tmp_va}\""
+  ;;
+  mkdir)
+    ddk_compile_add "call_make_dir \"${tmp_va}\""
+  ;;
+  target)
+    tmp_va2=`echo "${tmp_va}" | sed -e 's/-/_/g'`
+    ddk_compile_add "call_target ${tmp_va2}"
+  ;;
+  install)
+    ddk_compile_add "call_install ${tmp_va}"
+  ;;
+  package-start)
+    ddk_compile_add "call_package_start \"${tmp_va}\""
+  ;;
+  package-end)
+    ddk_compile_add "call_package_end \"${tmp_va}\""
+  ;;
+  package-install)
+    ddk_compile_add "call_package_install \"${tmp_va}\""
+  ;;
+  package)
+    ddk_compile_add "call_package ${tmp_va}"
+  ;;
   *)
-    ddk_compile_add "${tmp_val}"
+    ddk_compile_add "${tmp_nm} ${tmp_va}"
   ;;
   esac
 }
@@ -70,12 +101,12 @@ ddk_compile_mk_ifex(){
     elif [ $tmp_no_if -eq 2 ]; then
       tmp_2_if=$tmp_o_if
     else
-      ddk_exit 1 "syntax error: ${line}"
+      ddk_exit 1 "syntax error(7): ${line}"
     fi
   done
 
   if [ $tmp_no_if -ne 2 ]; then
-      ddk_exit 1 "syntax error: ${line}"
+      ddk_exit 1 "syntax error(8): ${line}"
   fi
 
   case "${1}" in
@@ -113,25 +144,25 @@ ddk_compile_mk_nomak(){
     ;;
     ifdef)
       if [ "${tmp_val}" = "" ]; then
-          ddk_exit 1 "syntax error: ${line}"
+          ddk_exit 1 "syntax error(9): ${line}"
       fi
       ddk_compile_add "if [ \"\$(ddk_compile_mk_ifdef \"${tmp_val}\")\" = \"1\" ]; then"
     ;;
     ifndef)
       if [ "${tmp_val}" = "" ]; then
-          ddk_exit 1 "syntax error: ${line}"
+          ddk_exit 1 "syntax error(10): ${line}"
       fi
       ddk_compile_add "if [ \"\$(ddk_compile_mk_ifdef \"${tmp_val}\")\" = \"0\" ]; then"
     ;;
     elifdef|el-ifdef|else-ifdef|el_ifdef|else_ifdef)
       if [ "${tmp_val}" = "" ]; then
-          ddk_exit 1 "syntax error: ${line}"
+          ddk_exit 1 "syntax error(11): ${line}"
       fi
       ddk_compile_add "elif [ \"\$(ddk_compile_mk_ifdef ${tmp_val})\" = \"1\" ]; then"
     ;;
     elifndef|el-ifndef|else-ifndef|el_ifndef|else_ifndef)
       if [ "${tmp_val}" = "" ]; then
-          ddk_exit 1 "syntax error: ${line}"
+          ddk_exit 1 "syntax error(12): ${line}"
       fi
       ddk_compile_add "elif [ \"\$(ddk_compile_mk_ifdef ${tmp_val})\" = \"0\" ]; then"
     ;;
@@ -149,7 +180,10 @@ ddk_compile_mk_nomak(){
       fi
     ;;
     *)
-      ddk_exit 1 "syntax error: ${line}"
+echo "x: $tmp_cmd, $tmp_val"
+      tmp_cmd=`echo "${tmp_str}" | sed -e 's/-/_/g'`
+      ddk_compile_add "${line}"
+      #ddk_exit 1 "syntax error(13): ${line}"
     ;;
     esac
 }
@@ -225,7 +259,14 @@ ddk_compile_mk_set(){
        tmp_val="1"
     ;;
     esac
+
     ddk_compile_add "${tmp_cmd}=${tmp_pfix}${tmp_val}${tmp_sfix}"
+
+    case "${tmp_cmd}" in
+    LOCAL_MODULE)
+      ddk_compile_add "LOCAL_MODULE_BIN=${tmp_pfix}\${DDK_ENV_TARGET_BUILD}/${tmp_val}${tmp_sfix}"
+    ;;
+    esac
 }
 
 ddk_compile_mk_plus(){
@@ -273,6 +314,8 @@ ddk_compile_mk_hasmak(){
       fi
     fi
 
+    tmp_cmd=`echo "${tmp_cmd}" | sed -e 's/-/_/g'`
+
     case "${tmp_mak}" in
     :)
       ddk_compile_mk_cmd_prefix
@@ -293,7 +336,10 @@ ddk_compile_mk_hasmak(){
 }
 
 ddk_compile_mk(){
-    tmp_mk_fnm="${1}/Dframework.mk"
+# ${1} : directory
+# ${2} : Dframework.mk or Application.mk
+
+    tmp_mk_fnm="${1}/${2}"
     if test ! -f "${tmp_mk_fnm}"; then
       return 1
     fi
@@ -325,13 +371,13 @@ ddk_compile_mk(){
 
       tmp_cmd=`expr "$line" : '\(^[a-zA-Z0-9_-]\+\)[[:blank:]\:\+]*'`
       if [ "${tmp_cmd}" = "" ]; then
-        #tmp_call=`expr "$line" : '^[[:blank:]]*\$(\([[:print:]]\+\))[[:blank:]]*$'`
-        #if [ "${tmp_call}" != "" ]; then
-        #  ddk_compile_call_func
-        #  continue
-        #else
-          ddk_exit 1 "syntax error(6): ${line} at ${tmp_mk_fnm}:${tmp_no}"
-        #fi
+        tmp_call=`expr "$line" : '^[[:blank:]]*\$(\([[:print:]]\+\))[[:blank:]]*$'`
+        if [ "${tmp_call}" != "" ]; then
+          ddk_compile_call_func
+          continue
+        else
+          ddk_exit 1 "syntax error(6b): ${line} at ${tmp_mk_fnm}:${tmp_no}"
+        fi
       fi
 
       tmp_mak=`expr "$line" : '^[a-zA-Z0-9_-]\+[[:blank:]]*\([\:\+\=]\+\)'`
@@ -369,7 +415,7 @@ ddk_compile_mk(){
               fi
             done 
           fi
-          ddk_compile_add "}"
+          ddk_compile_add " echo \"\"\n}"
         fi
       done
     fi
@@ -381,14 +427,72 @@ ddk_compile_mk(){
     return 0
 }
 
+ddk_get_app_mk(){
+    tmp_find=1
+    tmp_path=$1
+    tmp_init_path=$1
+    tmp_init_pwd=`pwd`
+    tmp_app_nm=""
+    cd $tmp_path
+    ddk_exit $? "error:: cd $tmp_path"
+    while [ "$tmp_path" != "/" ];
+    do
+        tmp_app_nm="${tmp_path}/Application.mk"
+        if test -f $tmp_app_nm; then
+            tmp_find=0
+            break
+        fi
+        cd ..
+        tmp_path=`pwd`
+    done
+    cd $tmp_init_pwd
+    ddk_exit $? "error:: cd $tmp_init_pwd"
+    return $tmp_find
+}
+
+ddk_app_mk(){
+    ddk_get_app_mk "${1}"
+    tmp_r=$?
+    if [ $tmp_r -eq 0 ]; then
+        ddk_compile_mk "${tmp_path}" "Application.mk"
+        ddk_load_mk "${tmp_path}" "Application.mk"
+    fi
+}
+
+ddk_excute_mk(){
+    if [ "${2}" = "Dframework.mk" ]; then
+        ddk_app_mk "${1}"
+    fi
+
+    . $3
+
+    if [ "${2}" = "Dframework.mk" ]; then
+    if [ "${DDK_ENV_CMD}" != "" ]; then
+        tmp_find=0
+        for tmp_x in $LOCAL_CMD_PREFIX
+        do
+            if [ "$tmp_x" = "$DDK_ENV_CMD" ]; then
+                tmp_find=1
+            fi
+        done
+        if [ $tmp_find -eq 1 ]; then
+            $DDK_ENV_CMD
+        fi
+    fi
+    fi
+}
+
 ddk_load_mk(){
-    tmp_mk_input="${1}/Dframework.mk"
+# ${1} : directory
+# ${2} : Dframework.mk or Application.mk
+
+    tmp_mk_input="${1}/${2}"
     if test ! -f "${tmp_mk_input}"; then
       return 1
     fi
 
     tmp_mk_output_folder="${DDK_ENV_TARGET_WORKING}${1}"
-    tmp_mk_output="${tmp_mk_output_folder}/Dframework.mk.S"
+    tmp_mk_output="${tmp_mk_output_folder}/${2}.S"
     tmp_mk_time_input=$(ddk_call_mtime "$tmp_mk_input")
     tmp_mk_time_output=$(ddk_call_mtime "$tmp_mk_output")
     if [ $tmp_mk_time_input -eq 1 ]; then
@@ -399,10 +503,11 @@ ddk_load_mk(){
     fi
 
     if [ $tmp_mk_time_input -eq $tmp_mk_time_output ]; then
-        . $tmp_mk_output
+        ddk_excute_mk "${1}" "${2}" "${tmp_mk_output}"
         return 0
     fi
 
+    if [ "${2}" = "Dframework.mk" ]; then
     if test -d "${tmp_mk_output_folder}"; then
         rm -rf ${tmp_mk_output_folder}/*.Plo
         rm -rf ${tmp_mk_output_folder}/*.o
@@ -411,6 +516,7 @@ ddk_load_mk(){
         rm -rf ${tmp_mk_output_folder}/*.so
         rm -rf ${tmp_mk_output_folder}/*.dll
         rm -rf ${tmp_mk_output_folder}/*.exe
+    fi
     fi
 
     if test ! -d "${tmp_mk_output_folder}"; then
@@ -426,7 +532,7 @@ ddk_load_mk(){
         ddk_exit 1 "error: write to ${tmp_mk_output}"
     fi
 
-    . $tmp_mk_output
+    ddk_excute_mk "${1}" "${2}" "${tmp_mk_output}"
 
     touch -r ${tmp_mk_input} ${tmp_mk_output}
     if [ $? -ne 0 ]; then
