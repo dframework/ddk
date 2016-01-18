@@ -180,7 +180,7 @@ ddk_compile_mk_nomak(){
       fi
     ;;
     *)
-echo "x: $tmp_cmd, $tmp_val"
+      #echo "x: $tmp_cmd, $tmp_val"
       tmp_cmd=`echo "${tmp_str}" | sed -e 's/-/_/g'`
       ddk_compile_add "${line}"
       #ddk_exit 1 "syntax error(13): ${line}"

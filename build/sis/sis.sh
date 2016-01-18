@@ -130,8 +130,8 @@ ddk_sis_start(){
     fi
 
     if test -f $SIS_SELF_ORGNM/DDKSIS/presis ; then
-        $SIS_SELF_ORGNM/DDKSIS/presis
-        ddk_exit $? "error: $SIS_SELF_ORGNM/DDKSIS/presis"
+        tmp_bg=`$SIS_SELF_ORGNM/DDKSIS/presis`
+        ddk_exit $? "error: $SIS_SELF_ORGNM/DDKSIS/presis: ${tmp_bg}"
     fi
 
     cd $SIS_SELF_ORGNM
@@ -159,8 +159,8 @@ ddk_sis_start(){
     cd ../
 
     if test -f $SIS_SELF_ORGNM/DDKSIS/postsis ; then
-        $SIS_SELF_ORGNM/DDKSIS/postsis
-        ddk_exit $? "error: $SIS_SELF_ORGNM/DDKSIS/postsis"
+        tmp_bg=`$SIS_SELF_ORGNM/DDKSIS/postsis "${tmp_bg}"`
+        ddk_exit $? "error: $SIS_SELF_ORGNM/DDKSIS/postsis: ${tmp_bg}"
     fi
 
     cd $tmp_curpwd
@@ -226,17 +226,9 @@ do
     xi=$(($xi+1))
 done
 
-echo ""
-echo "  -=-=-=-=--=-=-=-=-=-=-=-=--=-=-=-=-"
-echo "    DDK SELF INSTALL SCRIPT"
-echo "  -=-=-=-=--=-=-=-=-=-=-=-=--=-=-=-=-"
-echo ""
-
 ddk_sis_start
 
-echo ""
 echo "    DDK self install script complete ... OK"
-
 exit 0
 
 ____DDK_ARCHIVE_FOLLOWS____
