@@ -395,6 +395,8 @@ ddk_compile_mk(){
 
     done < "${tmp_mk_fnm}"
 
+    ddk_compile_clear_cmd_prefix
+
     #################################################################
     if [ "${tmp_cmd_prefix_index}" != "" ]; then
       tmp_cmd_prefix_a_index=$(echo $tmp_cmd_prefix_index | tr " " "\n")
@@ -415,7 +417,7 @@ ddk_compile_mk(){
               fi
             done 
           fi
-          ddk_compile_add " echo \"\"\n}"
+          ddk_compile_add "\n}"
         fi
       done
     fi
