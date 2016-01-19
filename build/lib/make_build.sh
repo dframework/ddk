@@ -143,7 +143,6 @@ BUILD_SHARED_LIBRARY(){
                 rm "$tmp_soname"
             fi
             ln -s "${tmp_objname}" "${tmp_soname}"
-            ln -s "${tmp_soname}" "$tmp_mname"
         cd $tmp_current
       fi
     fi

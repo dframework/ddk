@@ -226,9 +226,9 @@ ddk_ldflags_shared_libs(){
         fi
     done
 
-    if [ "${tmp_nofind_libs}" != "" ]; then
-        ddk_exit 1 "error: Not find shared libs: ${tmp_nofind_libs}"
-    fi
+    #if [ "${tmp_nofind_libs}" != "" ]; then
+    #    #ddk_exit 1 "error: Not find shared libs: ${tmp_nofind_libs}"
+    #fi
 
     tmp_shared_libs="${tmp_find_libs}"
 }
