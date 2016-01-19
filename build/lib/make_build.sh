@@ -5,9 +5,34 @@ tmp_ck_local_srcs=
 tmp_ck_local_objs=
 tmp_time_max=
 tmp_time_max_nm=
+tmp_rm_dirs=
 
 CLEAR_VARS(){
     TEST_A=called
+}
+
+build_addlib_static_libs(){
+    tmp_c=0
+    if [ "${2}" = "" ]; then
+        tmp_buf="create ${1}\n"
+    else
+        tmp_c=$(($tmp_c+1))
+        tmp_buf="create ${1}\naddlib ${2}\n"
+    fi
+
+    for tmp_l in $3
+    do
+        tmp_c=$(($tmp_c+1))
+        tmp_buf="${tmp_buf}addlib ${tmp_l}\n"
+    done
+
+    if [ $tmp_c -ne 0 ]; then
+        tmp_buf="${tmp_buf}save\nend"
+    else
+        tmp_buf=""
+    fi
+
+    tmp_addlibs=$tmp_buf
 }
 
 BUILD_STATIC_LIBRARY(){
@@ -19,19 +44,47 @@ BUILD_STATIC_LIBRARY(){
     ddk_build_version
     ddk_build_objects
 
-    tmp_ck_last_obj="${LOCAL_MODULE}.${DDC_STATIC_LIB_EXT}"
-    tmp_ck_last_cmd="${DDC_AR} ${tmp_ck_last_obj} ${tmp_objs} ${tmp_static_libs}"
+
+    if [ "$tmp_static_libs" = "" ]; then
+        tmp_ck_last_obj="${LOCAL_MODULE}.${DDC_STATIC_LIB_EXT}"
+        tmp_ck_last_cmd="${DDC_AR} rcs ${tmp_ck_last_obj} ${tmp_objs}"
+    else
+        tmp_ck_origin_obj="${LOCAL_MODULE}.${DDC_STATIC_LIB_EXT}"
+        tmp_ck_last_date=`date +%Y%m%d%H%I%S`
+        tmp_ck_last_obj="${LOCAL_MODULE}-${tmp_ck_last_date}.${DDC_STATIC_LIB_EXT}"
+        tmp_ck_last_cmd="${DDC_AR} rcs ${tmp_ck_last_obj} ${tmp_objs}"
+    fi
     ddk_build_last_object
 
-    if [ $tmp_can_last_make -eq 0 ]; then
+    if [ "$tmp_static_libs" != "" ]; then
         tmp_current=`pwd`
         cd $DDK_ENV_TARGET_BUILD
-        $DDC_RANLIB "${tmp_ck_last_obj}"
-        res=$?
-        cd $tmp_current
-        if [ $res -ne 0 ]; then
-           ddk_exit 1 "    \033[31mERROR: $DDC_RANLIB ${tmp_ck_last_obj}\033[0m"
+        ddk_exit $? "error: cd $DDK_ENV_TARGET_BUILD"
+
+        build_addlib_static_libs "${tmp_ck_origin_obj}" "${tmp_ck_last_obj}" "${tmp_static_libs}"
+        if [ "$tmp_addlibs" != "" ]; then
+            `echo "${tmp_addlibs}" | ${DDC_AR} -M`
+            res=$?
+            rm $tmp_ck_last_obj
+            ddk_exit $res "error: echo -e ${tmp_addlibs} | ${DDC_AR} -M"
+        else
+            rm $tmp_ck_last_obj
+            ddk_exit $? "error: rm $tmp_ck_last_obj in $DDK_ENV_TARGET_BUILD"
         fi
+
+        tmp_ck_last_obj=$tmp_ck_origin_obj
+        cd $tmp_current
+    fi
+
+    tmp_current=`pwd`
+    cd $DDK_ENV_TARGET_BUILD
+    ddk_exit $? "error: cd $DDK_ENV_TARGET_BUILD"
+
+    $DDC_RANLIB "${tmp_ck_last_obj}"
+    res=$?
+    cd $tmp_current
+    if [ $res -ne 0 ]; then
+       ddk_exit 1 "    \033[31mERROR: $DDC_RANLIB ${tmp_ck_last_obj}\033[0m"
     fi
 
     echo ""
@@ -70,7 +123,6 @@ BUILD_SHARED_LIBRARY(){
         tmp_static_archives="-Wl,--whole-archive ${tmp_static_short_libs} -Wl,--no-whole-archive"
     fi
 
-    tmp_last_cflags="-fPIC"
     tmp_ck_last_obj="${tmp_objname}"
     if [ $tmp_noversion -ne 0 ]; then
         tmp_ck_last_cmd="${DDC_CPP} ${tmp_last_cflags} -shared -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"

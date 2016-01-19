@@ -33,7 +33,7 @@ DDK_SET_NO_SUBDIRS=""
 
 DDK_CC="gcc"
 DDK_CPP="g++"
-DDK_AR="ar rcs"
+DDK_AR="ar"
 DDK_RANLIB="ranlib"
 
 DDK_CROSS_HOME="/usr/bin"

@@ -228,7 +228,7 @@ done
 
 ddk_sis_start
 
-echo "  DDK self install script complete ... OK"
+echo "    * DDK self install script complete ... OK"
 exit 0
 
 ____DDK_ARCHIVE_FOLLOWS____
