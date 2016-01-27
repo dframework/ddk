@@ -529,7 +529,7 @@ ddk_load_mk(){
       fi
     fi
 
-    `echo ${tmp_mkbuf} > ${tmp_mk_output}`
+    `echo -e ${tmp_mkbuf} > ${tmp_mk_output}`
     if [ $? -ne 0  ]; then
         ddk_exit 1 "error: write to ${tmp_mk_output}"
     fi
