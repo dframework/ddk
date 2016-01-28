@@ -10,3 +10,4 @@ git commit -m "first commit"
 git remote add orgin-ddk https://github.com/dframework/ddk.git
 git push -u orgin-ddk master
 
+test
