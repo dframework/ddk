@@ -529,7 +529,11 @@ ddk_load_mk(){
       fi
     fi
 
-    `echo -e ${tmp_mkbuf} > ${tmp_mk_output}`
+    if [ "$DDK_ENV_OSNAME" = "centos" ]; then
+        `echo -e ${tmp_mkbuf} > ${tmp_mk_output}`
+    else
+        `echo ${tmp_mkbuf} > ${tmp_mk_output}`
+    fi
     if [ $? -ne 0  ]; then
         ddk_exit 1 "error: write to ${tmp_mk_output}"
     fi
