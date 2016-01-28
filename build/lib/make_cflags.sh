@@ -64,7 +64,7 @@ ddk_cflags_init(){
     DDC_CFLAGS=""
 
     if [ $DDK_ENV_DEBUG -eq 1 ]; then
-        DDC_CFLAGS="-g -O0 -DDEBUG"
+        DDC_CFLAGS="-W -Wall -g -O0 -DDEBUG"
     fi
     DDC_CFLAGS="${DDC_CFLAGS} ${LOCAL_CFLAGS}"
     DDC_CFLAGS="${DDC_CFLAGS} ${LOCAL_CPPFLAGS}"
