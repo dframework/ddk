@@ -123,6 +123,13 @@ call_package_start(){
     else
         tmp_pkg_nm="${LOCAL_MODULE}-${tmp_pkg_dst}"
     fi
+
+    if [ "${DDK_ENV_OSNAME}" != "" ]; then
+        tmp_pkg_nm="${tmp_pkg_nm}-${DDK_ENV_OSNAME}"
+    else
+        tmp_pkg_nm="${tmp_pkg_nm}-unknownos"
+    fi
+
     tmp_pkg_path="${DDK_ENV_TARGET_PKG}/${LOCAL_MODULE}/${tmp_pkg_target}/${tmp_pkg_nm}"
     echo "    Purpose: [${tmp_pkg_path}]\n"
 
@@ -261,6 +268,12 @@ call_package_install(){
         tmp_pkg_nm="${LOCAL_MODULE}-${LOCAL_VERSION}-${tmp_pkg_dst}"
     else
         tmp_pkg_nm="${LOCAL_MODULE}-${tmp_pkg_dst}"
+    fi
+
+    if [ "${DDK_ENV_OSNAME}" != "" ]; then
+        tmp_pkg_nm="${tmp_pkg_nm}-${DDK_ENV_OSNAME}"
+    else
+        tmp_pkg_nm="${tmp_pkg_nm}-unknownos"
     fi
 
     tmp_pkg_path_p="${DDK_ENV_TARGET_PKG}/${LOCAL_MODULE}/${tmp_pkg_target}"

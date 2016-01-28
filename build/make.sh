@@ -5,6 +5,7 @@
 #
 
 DDK_ENV_CMD=""
+DDK_ENV_OSNAME=""
 DDK_ENV_HOME=""
 DDK_ENV_OUT=""
 DDK_ENV_DEBUG=0
@@ -134,6 +135,7 @@ ddkinfo(){
     echo "  DDK ENVIRONMENTS"
     echo "  ---------------------------------------------------------"
     echo ""
+    echo "  DDK_ENV_OSNAME         : [${DDK_ENV_OSNAME}]"
     echo "  DDK_ENV_HOME           : [${DDK_ENV_HOME}]"
     echo "  DDK_ENV_OUT            : [${DDK_ENV_OUT}]"
     echo "  DDK_ENV_DEBUG          : [${DDK_ENV_DEBUG}]"
@@ -409,6 +411,10 @@ do
     fi
     xi=$(($xi+1))
 done
+
+tmp_issue=`cat /etc/issue`
+tmp_osname=`expr "$tmp_issue" : '\(^[a-zA-Z0-9]\+\)[[:blank:]]\+[[:print:]]\+'`
+DDK_ENV_OSNAME=`echo $tmp_osname | tr "[A-Z]" "[a-z]"`
 
 if [ $DDK_ENV_PRINT_HELP -eq 1 ]; then
     ddk_print_help
