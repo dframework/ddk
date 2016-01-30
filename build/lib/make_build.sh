@@ -281,7 +281,10 @@ ddk_build_src(){
 
     tmp_tool=$(ddk_build_get_tool "${tmp_ext}")
     #tmp_cflags=$(ddk_build_get_cflags)
-    tmp_cflags=$DDC_CFLAGS
+    tmp_cflags="${DDC_CFLAGS}"
+    tmp_cflags="${tmp_cflags} -DGLOBAL_MAJOR_VERSION=${GLOBAL_MAJOR_VERSION}"
+    tmp_cflags="${tmp_cflags} -DGLOBAL_MINOR_VERSION=${GLOBAL_MINOR_VERSION}"
+    tmp_cflags="${tmp_cflags} -DGLOBAL_PATCH_VERSION=${GLOBAL_PATCH_VERSION}"
 
     ${tmp_tool} -o ${tmp_obj} -c ${tmp_src} ${tmp_cflags}
     #    echo  "    ${tmp_tool} -o ${tmp_obj} -c ${tmp_src} ${tmp_cflags}"
