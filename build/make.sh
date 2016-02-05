@@ -33,7 +33,7 @@ DDK_SET_SUBDIRS=""
 DDK_SET_NO_SUBDIRS=""
 
 DDK_CC="gcc"
-DDK_CPP="g++"
+DDK_CXX="g++"
 DDK_AR="ar"
 DDK_RANLIB="ranlib"
 
@@ -41,7 +41,7 @@ DDK_CROSS_HOME="/usr/bin"
 DDK_CROSS_PREFIX=""
 
 DDC_CC=""
-DDC_CPP=""
+DDC_CXX=""
 DDC_AR=""
 DDC_RANLIB=""
 DDC_PWD=""
@@ -51,12 +51,35 @@ DDC_STATIC_LIB_EXT="a"
 DDC_SHARED_LIB_EXT="so"
 DDC_EXCUTE_EXT=""
 
+
+# -------------------------------------------------------------------
+tmp_unamea=`uname -a`
+tmp_unameb=`expr "${tmp_unamea}" : '\(^[A-Za-z0-9]\{1,\}\)[[:blank:]]'`
+DDK_ENV_OSNAME=`echo $tmp_unameb | tr "[A-Z]" "[a-z]"`
+case "${DDK_ENV_OSNAME}" in
+    darwin)
+        DDK_ENV_TARGET_OS="darwin"
+        DDC_SHARED_LIB_EXT="dylib"
+    ;;
+esac
+# -------------------------------------------------------------------
+
+
 ddk_check_os(){
     case "${DDK_ENV_TARGET_OS}" in
     linux)
         return 0
     ;;
     windows)
+        return 0
+    ;;
+    darwin)
+        return 0
+    ;;
+    ios)
+        return 0
+    ;;
+    android)
         return 0
     ;;
     esac
@@ -80,6 +103,9 @@ ddk_check_cpu(){
     i386)
         return 0
     ;;
+    armv7)
+        return 0
+    ;;
     esac
     ddk_exit 1 "ERROR: Unknown target cpu (${1}). --print-cpu-list"
 }
@@ -93,6 +119,8 @@ ddk_print_os_list(){
     echo "  ------------------"
     echo "    linux"
     echo "    windows"
+    echo "    ios"
+    echo "    android"
     echo ""
 }
 
@@ -108,6 +136,7 @@ ddk_print_cpu_list(){
     echo "    amd64"
     echo "    i686"
     echo "    i386"
+    echo "    armv7"
     echo ""
 }
 
@@ -124,6 +153,7 @@ ddk_print_targets(){
     echo "    mingw-linux-x86_64"
     #echo "    mingw-msys-x86"
     #echo "    mingw-msys-x86_64"
+    echo "    ios-armv7"
     echo ""
 }
 
@@ -151,7 +181,7 @@ ddkinfo(){
     echo "  DDC_PWD                : [${DDC_PWD}]"
     echo ""
     echo "  DDK_CC                 : [${DDK_CC}]"
-    echo "  DDK_CPP                : [${DDK_CPP}]"
+    echo "  DDK_CXX                : [${DDK_CXX}]"
     echo "  DDK_AR                 : [${DDK_AR}]"
     echo "  DDK_RANLIB             : [${DDK_RANLIB}]"
     echo "  DDK_CROSS_PREFIX       : [${DDK_CROSS_PREFIX}]"
@@ -322,7 +352,7 @@ ddk_ready_base_environments(){
     fi
 
     DDC_CC="${cross_prefix}${DDK_CC}"
-    DDC_CPP="${cross_prefix}${DDK_CPP}"
+    DDC_CXX="${cross_prefix}${DDK_CXX}"
     DDC_AR="${cross_prefix}${DDK_AR}"
     DDC_RANLIB="${cross_prefix}${DDK_RANLIB}"
 }
@@ -395,13 +425,12 @@ ddk_make_dir(){
 #
 
 DDC_TEMP_ARGS=$@
-
 DDC_PWD=`pwd`
 xi=0
 for x in $DDC_TEMP_ARGS
 do
-    xn=`expr "$x" : '\(^--[0-9a-zA-Z_-]\+\)[=]*[[:print:]]*'`
-    xv=`expr "$x" : '^--[0-9a-zA-Z_-]\+[=]\{1\}\([[:print:]]\+\)'`
+    xn=`expr "$x" : '\(^--[0-9a-zA-Z_-]\{1,\}\)[=]*[[:print:]]*'`
+    xv=`expr "$x" : '^--[0-9a-zA-Z_-]\{1,\}[=]\{1\}\([[:print:]]\{1,\}\)'`
     if [ "${xn}" != "" ]; then
         ddk_ready_arguments_2 $xi "${xn}" "${xv}"
         ddk_exit $?
@@ -411,10 +440,6 @@ do
     fi
     xi=$(($xi+1))
 done
-
-tmp_issue=`cat /etc/issue`
-tmp_osname=`expr "$tmp_issue" : '\(^[a-zA-Z0-9]\+\)[[:blank:]]\+[[:print:]]\+'`
-DDK_ENV_OSNAME=`echo $tmp_osname | tr "[A-Z]" "[a-z]"`
 
 if [ $DDK_ENV_PRINT_HELP -eq 1 ]; then
     ddk_print_help

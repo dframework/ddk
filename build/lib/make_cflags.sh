@@ -8,7 +8,7 @@ ddk_cflags_include_chunked(){
     tmp_a="${ddk_cflags_include_paths}"
     for tmp_x in $1
     do
-      tmp_y=`expr "$tmp_x" : '[[:blank:]]*-I\([[:print:]]\+\)[[:blank:]]*'`
+      tmp_y=`expr "$tmp_x" : '[[:blank:]]*-I\([[:print:]]\{1,\}\)[[:blank:]]*'`
       if [ "$tmp_y" != "" ]; then
         tmp_a="${tmp_a} ${tmp_y}"
       fi
@@ -17,7 +17,7 @@ ddk_cflags_include_chunked(){
 }
 
 ddk_cflags_get_include_path(){
-    tmp_ss=`expr "${1}" : '^[[:blank:]]*\([[:print:]]\+\)[[:blank:]]*$'`
+    tmp_ss=`expr "${1}" : '^[[:blank:]]*\([[:print:]]\{1,\}\)[[:blank:]]*$'`
     tmp_si=`expr "$tmp_ss" : '\(^[[:print:]]\)'`
     if [ "$tmp_si" = "/" ]; then
         echo "${tmp_ss}"
@@ -90,7 +90,7 @@ ddk_ldflags_path_chunked(){
 
     for tmp_x in $1
     do
-      tmp_y=`expr "$tmp_x" : '[[:blank:]]*-L\([[:print:]]\+\)[[:blank:]]*'`
+      tmp_y=`expr "$tmp_x" : '[[:blank:]]*-L\([[:print:]]\{1,\}\)[[:blank:]]*'`
       if [ "$tmp_y" != "" ]; then
         ddk_ldflags_paths="${ddk_ldflags_paths} ${tmp_y}"
       fi
@@ -98,7 +98,7 @@ ddk_ldflags_path_chunked(){
 }
 
 ddk_ldflags_get_lib_path(){
-    tmp_ss=`expr "${1}" : '^[[:blank:]]*\([[:print:]]\+\)[[:blank:]]*$'`
+    tmp_ss=`expr "${1}" : '^[[:blank:]]*\([[:print:]]\{1,\}\)[[:blank:]]*$'`
     tmp_si=`expr "$tmp_ss" : '\(^[[:print:]]\)'`
     if [ "$tmp_si" = "/" ]; then
         echo "${tmp_ss}"
@@ -155,7 +155,7 @@ ddk_ldflags_static_libs(){
     do
         tmp_prefix=`expr "${tmp_x}" : '\(lib\)[[:print:]]*'`
         if [ "${tmp_prefix}" = "lib" ]; then
-            tmp_nm=`expr "${tmp_x}" : 'lib\([[:print:]]\+\)'`
+            tmp_nm=`expr "${tmp_x}" : 'lib\([[:print:]]\{1,\}\)'`
         else
             tmp_nm=$tmp_x
         fi
@@ -199,7 +199,7 @@ ddk_ldflags_shared_libs(){
     do
         tmp_prefix=`expr "${tmp_x}" : '\(lib\)[[:print:]]*'`
         if [ "${tmp_prefix}" = "lib" ]; then
-            tmp_nm=`expr "${tmp_x}" : 'lib\([[:print:]]\+\)'`
+            tmp_nm=`expr "${tmp_x}" : 'lib\([[:print:]]\{1,\}\)'`
         else
             tmp_nm=$tmp_x
         fi

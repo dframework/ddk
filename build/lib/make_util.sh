@@ -14,6 +14,9 @@ ddk_call_mtime(){
         FreeBSD)
             mtime=`/usr/bin/stat -f '%m' ${1} 2>/dev/null`
             ;;
+        Darwin)
+            mtime=`/usr/bin/stat -f '%m' ${1} 2>/dev/null`
+            ;;
         *)
             echo "0"
             return
@@ -79,7 +82,7 @@ ddk_load_dir(){
     for entry in ./*
     do
       if test -d "$entry"; then
-        entry_name=`expr "$entry" : '^./\([[:print:]]\+\)'`
+        entry_name=`expr "$entry" : '^./\([[:print:]]\{1,\}\)'`
         if [ "$entry_name" = "" ]; then
             entry_name=$entry
         fi

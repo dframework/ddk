@@ -12,8 +12,8 @@ ddk_compile_clear_cmd_prefix(){
 }
 
 ddk_compile_call_func(){
-  tmp_nm=`expr "${tmp_call}" : '\([a-zA-Z0-9_-]\+\)[[:blank:]]*[[:print:]]*'`
-  tmp_va=`expr "${tmp_call}" : '[a-zA-Z0-9_-]\+[[:blank:]]*\([[:print:]]*\)'`
+  tmp_nm=`expr "${tmp_call}" : '\([a-zA-Z0-9_-]\{1,\}\)[[:blank:]]*[[:print:]]*'`
+  tmp_va=`expr "${tmp_call}" : '[a-zA-Z0-9_-]\{1,\}[[:blank:]]*\([[:print:]]*\)'`
 
   if [ "$tmp_nm" = "" ]; then
       ddk_exit 1 "syntax error(100): $tmp_call"
@@ -55,7 +55,7 @@ ddk_compile_call_func(){
 }
 
 ddk_compile_mk_include(){
-  tmp_nm=`expr "${tmp_val}" : '^[[:blank:]]*\$([[:blank:]]*\([a-zA-Z0-9_]\+\)[[:blank:]]*[[:print:]]*'`
+  tmp_nm=`expr "${tmp_val}" : '^[[:blank:]]*\$([[:blank:]]*\([a-zA-Z0-9_]\{1,\}\)[[:blank:]]*[[:print:]]*'`
   case "${tmp_nm}" in
   CLEAR_VARS)
     ddk_compile_add "CLEAR_VARS"
@@ -89,7 +89,7 @@ ddk_compile_mk_ifdef(){
 
 ddk_compile_mk_ifex(){
 
-  tmp_if=`expr "$tmp_val" : '^[[:blank:]]*(\([[:print:]]\+\))[[:blank:]]*$'`
+  tmp_if=`expr "$tmp_val" : '^[[:blank:]]*(\([[:print:]]\{1,\}\))[[:blank:]]*$'`
   tmp_a_if=$(echo "${tmp_if}" | tr "," "\n")
 
   tmp_no_if=0
@@ -113,14 +113,26 @@ ddk_compile_mk_ifex(){
   eq)
     ddk_compile_add "if [ ${tmp_1_if} = ${tmp_2_if} ]; then"
   ;;
+  eleq)
+    ddk_compile_add "elif [ ${tmp_1_if} = ${tmp_2_if} ]; then"
+  ;;
   ne)
     ddk_compile_add "if [ ${tmp_1_if} != ${tmp_2_if} ]; then"
+  ;;
+  elne)
+    ddk_compile_add "elif [ ${tmp_1_if} != ${tmp_2_if} ]; then"
   ;;
   gt)
     ddk_compile_add "if [ ${tmp_1_if} > ${tmp_2_if} ]; then"
   ;;
+  elgt)
+    ddk_compile_add "elif [ ${tmp_1_if} > ${tmp_2_if} ]; then"
+  ;;
   lt)
     ddk_compile_add "if [ ${tmp_1_if} < ${tmp_2_if} ]; then"
+  ;;
+  ellt)
+    ddk_compile_add "elif [ ${tmp_1_if} < ${tmp_2_if} ]; then"
   ;;
   esac
 }
@@ -141,6 +153,18 @@ ddk_compile_mk_nomak(){
     ;;
     ifge|iflt)
       ddk_compile_mk_ifex "lt"
+    ;;
+    elifeq|el-ifeq|else-ifeq|el_ifeq|else_ifeq|eleq)
+      ddk_compile_mk_ifex "eleq"
+    ;;
+    elifne|el-ifne|else-ifne|el_ifne|else_ifne|elne)
+      ddk_compile_mk_ifex "elne"
+    ;;
+    elifle|el-ifle|else-ifle|el_ifle|else_ifle|elle)
+      ddk_compile_mk_ifex "elgt"
+    ;;
+    elifge|el-ifge|else-ifge|el_ifge|else_ifge|elge)
+      ddk_compile_mk_ifex "ellt"
     ;;
     ifdef)
       if [ "${tmp_val}" = "" ]; then
@@ -291,13 +315,13 @@ ddk_compile_mk_plus(){
 
 ddk_compile_mk_hasmak(){
     tmp_s3=""
-    tmp_s1=`expr "$tmp_val" : '^[[:blank:]]*\(\"\)[[:print:]]\+'`
+    tmp_s1=`expr "$tmp_val" : '^[[:blank:]]*\(\"\)[[:print:]]\{1,\}'`
     if [ "${tmp_s1}" != "" ]; then
-      tmp_s2=`expr "$tmp_val" : '[[:print:]]\+\(\"\)[[:blank:]]*\$'`
+      tmp_s2=`expr "$tmp_val" : '[[:print:]]\{1,\}\(\"\)[[:blank:]]*\$'`
       if [ "${tmp_s2}" != "\"" ]; then
         ddk_exit 1 "syntax error(4): ${line}"
       fi
-      tmp_s3=`expr "$tmp_val" : '^[[:blank:]]*\"\([[:print:]]\+\)\"[[:blank:]]*\$'`
+      tmp_s3=`expr "$tmp_val" : '^[[:blank:]]*\"\([[:print:]]\{1,\}\)\"[[:blank:]]*\$'`
     fi
 
     tmp_pfix=""
@@ -369,9 +393,9 @@ ddk_compile_mk(){
         continue
       fi
 
-      tmp_cmd=`expr "$line" : '\(^[a-zA-Z0-9_-]\+\)[[:blank:]\:\+]*'`
+      tmp_cmd=`expr "$line" : '\(^[a-zA-Z0-9_-]\{1,\}\)[[:blank:]\:\{1,\}]*'`
       if [ "${tmp_cmd}" = "" ]; then
-        tmp_call=`expr "$line" : '^[[:blank:]]*\$(\([[:print:]]\+\))[[:blank:]]*$'`
+        tmp_call=`expr "$line" : '^[[:blank:]]*\$(\([[:print:]]\{1,\}\))[[:blank:]]*$'`
         if [ "${tmp_call}" != "" ]; then
           ddk_compile_call_func
           continue
@@ -380,11 +404,11 @@ ddk_compile_mk(){
         fi
       fi
 
-      tmp_mak=`expr "$line" : '^[a-zA-Z0-9_-]\+[[:blank:]]*\([\:\+\=]\+\)'`
+      tmp_mak=`expr "$line" : '^[a-zA-Z0-9_-]\{1,\}[[:blank:]]*\([\:\+\=]\{1,\}\)'`
       if [ "${tmp_mak}" != "" ]; then
-        tmp_val=`expr "$line" : '^[a-zA-Z0-9_-]\+[[:blank:]]*[\:\+\=]\+[[:blank:]]*\([[:print:]]\+\)[[:blank:]]*$'`
+        tmp_val=`expr "$line" : '^[a-zA-Z0-9_-]\{1,\}[[:blank:]]*[\:\+\=]\{1,\}[[:blank:]]*\([[:print:]]\{1,\}\)[[:blank:]]*$'`
       else
-        tmp_val=`expr "$line" : '^[a-zA-Z0-9_-]\+[[:blank:]]\+\([[:print:]]\+\)[[:blank:]]*$'`
+        tmp_val=`expr "$line" : '^[a-zA-Z0-9_-]\{1,\}[[:blank:]]\{1,\}\([[:print:]]\{1,\}\)[[:blank:]]*$'`
       fi
 
       if [ "${tmp_mak}" = "" ]; then
@@ -504,10 +528,15 @@ ddk_load_mk(){
         ddk_exit 1 "don't get mtime: $tmp_mk_output"
     fi
 
-    if [ $tmp_mk_time_input -eq $tmp_mk_time_output ]; then
+    if [ $tmp_mk_time_input -eq 0 ]; then
+        ddk_exit 1 "ERROR: input file mtime : $tmp_mk_time_input"
+    fi
+
+    if [[ $tmp_mk_time_input -ne 0 && $tmp_mk_time_input -eq $tmp_mk_time_output ]]; then
         ddk_excute_mk "${1}" "${2}" "${tmp_mk_output}"
         return 0
     fi
+
 
     if [ "${2}" = "Dframework.mk" ]; then
     if test -d "${tmp_mk_output_folder}"; then

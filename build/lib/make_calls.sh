@@ -1,8 +1,8 @@
 #!/bin/sh
 
 call(){
-    tmp_call_cmd=`expr "${1}" : '\([a-zA-Z0-9_-]\+\)'`
-    tmp_call_val=`expr "${1}" : '[a-zA-Z0-9_-]\+\([[:print:]]*\)'`
+    tmp_call_cmd=`expr "${1}" : '\([a-zA-Z0-9_-]\{1,\}\)'`
+    tmp_call_val=`expr "${1}" : '[a-zA-Z0-9_-]\{1,\}\([[:print:]]*\)'`
     #echo "call: [$1]"
     #echo "call: [$1], cmd=[$tmp_call_val]"
 
@@ -57,7 +57,7 @@ call_install(){
        return $?
    fi
 
-   tmp_expr=`expr "${2}" : '\([[:print:]]\+\)/\+\$'`
+   tmp_expr=`expr "${2}" : '\([[:print:]]\{1,\}\)/\{1,\}\$'`
    if [ "$tmp_expr" != "" ]; then
        call_make_dir "$tmp_expr"
    else
@@ -327,7 +327,7 @@ call_package(){
        return $?
    fi
 
-   tmp_expr=`expr "${2}" : '\([[:print:]]\+\)/\+\$'`
+   tmp_expr=`expr "${2}" : '\([[:print:]]\{1,\}\)/\{1,\}\$'`
    if [ "$tmp_expr" != "" ]; then
        call_make_dir "${tmp_pkg_path}/${tmp_expr}"
    else

@@ -61,16 +61,27 @@ BUILD_STATIC_LIBRARY(){
         cd $DDK_ENV_TARGET_BUILD
         ddk_exit $? "error: cd $DDK_ENV_TARGET_BUILD"
 
-        build_addlib_static_libs "${tmp_ck_origin_obj}" "${tmp_ck_last_obj}" "${tmp_static_libs}"
-        if [ "$tmp_addlibs" != "" ]; then
-            `echo "${tmp_addlibs}" | ${DDC_AR} -M`
-            res=$?
-            rm $tmp_ck_last_obj
-            ddk_exit $res "error: echo -e ${tmp_addlibs} | ${DDC_AR} -M"
-        else
-            rm $tmp_ck_last_obj
-            ddk_exit $? "error: rm $tmp_ck_last_obj in $DDK_ENV_TARGET_BUILD"
-        fi
+        
+#build_addlib_static_libs "${tmp_ck_origin_obj}" "${tmp_ck_last_obj}" "${tmp_static_libs}"
+#echo $tmp_addlibs
+#echo build_addlib_static_libs \"${tmp_ck_origin_obj}\" \"${tmp_ck_last_obj}\" \"${tmp_static_libs}\"
+#exit 1
+        #if [ "$tmp_addlibs" != "" ]; then
+            #tmp_ddc_ar="${DDC_AR} -M"
+            #`echo -e "${tmp_addlibs}" | ${tmp_ddc_ar}`
+            #res=$?
+            #rm $tmp_ck_last_obj
+            #ddk_exit $res "error: echo -e ${tmp_addlibs} | ${tmp_ddc_ar}"
+        #else
+        #    rm $tmp_ck_last_obj
+        #    ddk_exit $? "error: rm $tmp_ck_last_obj in $DDK_ENV_TARGET_BUILD"
+        #fi
+
+        libtool -static ${tmp_ck_last_obj} ${tmp_static_libs} -o ${tmp_ck_origin_obj} > /dev/null 2>&1
+        res=$?
+        rm $tmp_ck_last_obj
+        ddk_exit $res "error: libtool -static ${tmp_ck_last_obj} ${tmp_static_libs} -o ${tmp_ck_origin_obj}"
+
 
         tmp_ck_last_obj=$tmp_ck_origin_obj
         cd $tmp_current
@@ -113,21 +124,35 @@ BUILD_SHARED_LIBRARY(){
         tmp_soname="${tmp_mname}"
         tmp_objname="${tmp_soname}"
     else 
-        tmp_mname="${LOCAL_MODULE}.${DDC_SHARED_LIB_EXT}"
-        tmp_soname="${tmp_mname}.${GLOBAL_MAJOR_VERSION}"
-        tmp_objname="${tmp_soname}.${GLOBAL_MINOR_VERSION}.${GLOBAL_PATCH_VERSION}"
+        if [ "${DDK_ENV_TARGET_OS}" = "darwin" ]; then
+            tmp_mname="${LOCAL_MODULE}.${DDC_SHARED_LIB_EXT}"
+            tmp_soname="${LOCAL_MODULE}.${GLOBAL_MAJOR_VERSION}.${DDC_SHARED_LIB_EXT}"
+            tmp_objname="${LOCAL_MODULE}.${GLOBAL_MAJOR_VERSION}.${GLOBAL_MINOR_VERSION}.${GLOBAL_PATCH_VERSION}.${DDC_SHARED_LIB_EXT}"
+        else
+            tmp_mname="${LOCAL_MODULE}.${DDC_SHARED_LIB_EXT}"
+            tmp_soname="${tmp_mname}.${GLOBAL_MAJOR_VERSION}"
+            tmp_objname="${tmp_soname}.${GLOBAL_MINOR_VERSION}.${GLOBAL_PATCH_VERSION}"
+        fi
     fi
 
     tmp_static_archives=""
     if [ "${tmp_static_short_libs}" != "" ]; then
-        tmp_static_archives="-Wl,--whole-archive ${tmp_static_short_libs} -Wl,--no-whole-archive"
+        if [ ${DDK_ENV_TARGET_OS} = "darwin" ]; then
+            tmp_static_archives="-Wl,-all_load ${tmp_static_short_libs}"
+        else
+            tmp_static_archives="-Wl,--whole-archive ${tmp_static_short_libs} -Wl,--no-whole-archive"
+        fi
     fi
 
     tmp_ck_last_obj="${tmp_objname}"
     if [ $tmp_noversion -ne 0 ]; then
-        tmp_ck_last_cmd="${DDC_CPP} ${tmp_last_cflags} -shared -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
+        tmp_ck_last_cmd="${DDC_CXX} ${tmp_last_cflags} -shared -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
     else
-        tmp_ck_last_cmd="${DDC_CPP} ${tmp_last_cflags} -shared -Wl,-soname,${tmp_soname} -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
+        if [ ${DDK_ENV_TARGET_OS} = "darwin" ]; then
+            tmp_ck_last_cmd="${DDC_CXX} ${tmp_last_cflags} -dynamiclib -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
+        else
+            tmp_ck_last_cmd="${DDC_CXX} ${tmp_last_cflags} -shared -Wl,-soname,${tmp_soname} -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
+        fi
     fi
 
     ddk_build_last_object
@@ -143,6 +168,7 @@ BUILD_SHARED_LIBRARY(){
                 rm "$tmp_soname"
             fi
             ln -s "${tmp_objname}" "${tmp_soname}"
+            ln -s "${tmp_soname}" "${tmp_mname}"
         cd $tmp_current
       fi
     fi
@@ -168,11 +194,16 @@ BUILD_EXCUTABLE(){
     if [ "${tmp_objs}" != "" ]; then
         tmp_static_archives=""
         if [ "${tmp_static_short_libs}" != "" ]; then
-            tmp_static_archives="-Wl,--whole-archive ${tmp_static_short_libs} -Wl,--no-whole-archive"
+            if [ ${DDK_ENV_TARGET_OS} = "darwin" ]; then
+                tmp_static_archives="-Wl,-all_load ${tmp_static_short_libs}"
+            else
+                tmp_static_archives="-Wl,--whole-archive ${tmp_static_short_libs} -Wl,--no-whole-archive"
+            fi
         fi
-        tmp_ck_last_cmd="${DDC_CPP} -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
+        tmp_ck_last_cmd="${DDC_CXX} -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
         ddk_build_last_object
     fi
+
     echo ""
 }
 
@@ -181,9 +212,9 @@ ddk_build_version(){
         LOCAL_VERSION="0.0.1"
     fi
     val="$LOCAL_VERSION"
-    GLOBAL_MAJOR_VERSION=`expr "$val" : '\(^[0-9]\+\)\.[[:print:]]\+'`
-    GLOBAL_MINOR_VERSION=`expr "$val" : '^[0-9]\+\.\([0-9]\+\)\.[[:print:]]\+'`
-    GLOBAL_PATCH_VERSION=`expr "$val" : '^[0-9]\+\.[0-9]\+\.\([[:print:]]\+\)'`
+    GLOBAL_MAJOR_VERSION=`expr "$val" : '\(^[0-9]\{1,\}\)\.[[:print:]]\{1,\}'`
+    GLOBAL_MINOR_VERSION=`expr "$val" : '^[0-9]\{1,\}\.\([0-9]\{1,\}\)\.[[:print:]]\{1,\}'`
+    GLOBAL_PATCH_VERSION=`expr "$val" : '^[0-9]\{1,\}\.[0-9]\{1,\}\.\([[:print:]]\{1,\}\)'`
     if [ "${GLOBAL_MAJOR_VERSION}" = "" ]; then
         GLOBAL_MAJOR_VERSION=0
     fi
@@ -214,10 +245,10 @@ ddk_build_get_tool(){
        echo $DDC_CC
     ;;
     cpp)
-       echo $DDC_CPP
+       echo $DDC_CXX
     ;;
     *)
-       echo $DDC_CPP
+       echo $DDC_CXX
     ;;
     esac
 }
@@ -228,10 +259,10 @@ ddk_build_get_toolname(){
        echo $DDK_CC
     ;;
     cpp)
-       echo $DDK_CPP
+       echo $DDK_CXX
     ;;
     *)
-       echo $DDK_CPP
+       echo $DDK_CXX
     ;;
     esac
 }
@@ -245,8 +276,8 @@ ddk_build_src(){
 
     tmp_src_count=$(($tmp_src_count+1))
 
-    tmp_ext=`expr "${tmp_src_input}" : '[[:print:]]\+\.\([a-zA-Z0-9_-]\+\)$'`
-    tmp_pnm=`expr "${tmp_src_input}" : '\([[:print:]]\+\)\.[a-zA-Z0-9_-]*$'`
+    tmp_ext=`expr "${tmp_src_input}" : '[[:print:]]\{1,\}\.\([a-zA-Z0-9_-]\{1,\}\)$'`
+    tmp_pnm=`expr "${tmp_src_input}" : '\([[:print:]]\{1,\}\)\.[a-zA-Z0-9_-]*$'`
     tmp_tnm=`echo "${tmp_pnm}" | sed -e 's/[\/]/+s+/g'`
     tmp_tnm=`echo "${tmp_tnm}" | sed -e 's/[\.]/+d+/g'`
 

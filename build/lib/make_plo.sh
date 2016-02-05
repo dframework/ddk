@@ -30,7 +30,7 @@ ddk_plo_col_includes(){
     tmp_col_test=""
     while read line
     do
-        tmp_x=`expr "$line" : '^#[[:blank:]]*include[[:blank:]]\+[\"\<]\{1\}\([[:print:]]\+\)[\"\>]\{1\}[[:print:]]*'`
+        tmp_x=`expr "$line" : '^#[[:blank:]]*include[[:blank:]]\{1,\}[\"\<]\{1\}\([[:print:]]\{1,\}\)[\"\>]\{1\}[[:print:]]*'`
 
         if [ "${tmp_x}" = "" ]; then
             continue

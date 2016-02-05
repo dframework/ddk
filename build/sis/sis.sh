@@ -80,7 +80,7 @@ ddk_sis_install(){
     tmp_test_pwd=`pwd`
     for tmp_nm in ./*
     do
-        tmp_onm=`expr "$tmp_nm" : '^./\([[:print:]]\+\)'`
+        tmp_onm=`expr "$tmp_nm" : '^./\([[:print:]]\{1,\}\)'`
         if [ "$tmp_onm" = "" ]; then
             continue
         fi
@@ -138,7 +138,7 @@ ddk_sis_start(){
     tmp_test_pwd=`pwd`
     for tmp_nm in ./*
     do
-        tmp_onm=`expr "$tmp_nm" : '^./\([[:print:]]\+\)'`
+        tmp_onm=`expr "$tmp_nm" : '^./\([[:print:]]\{1,\}\)'`
         if [ "$tmp_onm" = "" ]; then
             continue
         fi
@@ -196,13 +196,13 @@ SIS_SELF=$0
 SIS_PWD=`pwd`
 SIS_PWD_EQ=0
 SIS_WORK_DIR=$SIS_PWD
-tmp_test=`expr "$SIS_SELF" : '\(^.\)[[:print:]]\+$'`
+tmp_test=`expr "$SIS_SELF" : '\(^.\)[[:print:]]\{1,\}$'`
 if [ "$tmp_test" = "." ]; then
     SIS_SELF="$SIS_PWD/$SIS_SELF"
 fi
-SIS_SELF_NM=`expr "$SIS_SELF" : '^[[:print:]]\+/\([[:print:]]\+$\)'`
-SIS_SELF_PATH=`expr "$SIS_SELF" : '\(^[[:print:]]\+\)/[[:print:]]\+$'`
-SIS_SELF_ORGNM=`expr "$SIS_SELF_NM" : '\(^[[:print:]]\+\)\.sh$'`
+SIS_SELF_NM=`expr "$SIS_SELF" : '^[[:print:]]\{1,\}/\([[:print:]]\{1,\}$\)'`
+SIS_SELF_PATH=`expr "$SIS_SELF" : '\(^[[:print:]]\{1,\}\)/[[:print:]]\{1,\}$'`
+SIS_SELF_ORGNM=`expr "$SIS_SELF_NM" : '\(^[[:print:]]\{1,\}\)\.sh$'`
 
 cd $SIS_SELF_PATH
 tmp_test_pwd=`pwd`
@@ -214,8 +214,8 @@ cd $SIS_PWD
 xi=0
 for x in $SIS_TEMP_ARGS
 do
-    xn=`expr "$x" : '\(^--[0-9a-zA-Z_-]\+\)[=]*[[:print:]]*'`
-    xv=`expr "$x" : '^--[0-9a-zA-Z_-]\+[=]\{1\}\([[:print:]]\+\)'`
+    xn=`expr "$x" : '\(^--[0-9a-zA-Z_-]\{1,\}\)[=]*[[:print:]]*'`
+    xv=`expr "$x" : '^--[0-9a-zA-Z_-]\{1,\}[=]\{1\}\([[:print:]]\{1,\}\)'`
     if [ "${xn}" != "" ]; then
         ddk_ready_arguments_2 $xi "${xn}" "${xv}"
         ddk_exit $?
