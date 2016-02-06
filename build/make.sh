@@ -34,16 +34,14 @@ DDK_SET_NO_SUBDIRS=""
 
 DDK_CC="gcc"
 DDK_CXX="g++"
-DDK_AR="ar"
-DDK_RANLIB="ranlib"
 
 DDK_CROSS_HOME="/usr/bin"
 DDK_CROSS_PREFIX=""
 
 DDC_CC=""
 DDC_CXX=""
-DDC_AR=""
-DDC_RANLIB=""
+DDC_AR="/usr/bin/ar"
+DDC_RANLIB="/usr/bin/ranlib"
 DDC_PWD=""
 DDC_CFLAGS=""
 DDC_LDFLAGS=""
@@ -182,10 +180,11 @@ ddkinfo(){
     echo ""
     echo "  DDK_CC                 : [${DDK_CC}]"
     echo "  DDK_CXX                : [${DDK_CXX}]"
-    echo "  DDK_AR                 : [${DDK_AR}]"
-    echo "  DDK_RANLIB             : [${DDK_RANLIB}]"
     echo "  DDK_CROSS_PREFIX       : [${DDK_CROSS_PREFIX}]"
     echo "  DDK_CROSS_HOME         : [${DDK_CROSS_HOME}]"
+    echo "  DDK_CROSS_CFLAGS       : [${DDK_CROSS_CFLAGS}]"
+    echo "  DDK_CROSS_CPPFLAGS     : [${DDK_CROSS_CPPFLAGS}]"
+    echo "  DDK_CROSS_LDLAGS       : [${DDK_CROSS_LDLAGS}]"
     echo ""
     echo "  ---------------------------------------------------------"
     echo ""
@@ -353,8 +352,8 @@ ddk_ready_base_environments(){
 
     DDC_CC="${cross_prefix}${DDK_CC}"
     DDC_CXX="${cross_prefix}${DDK_CXX}"
-    DDC_AR="${cross_prefix}${DDK_AR}"
-    DDC_RANLIB="${cross_prefix}${DDK_RANLIB}"
+    #DDC_AR="${cross_prefix}${DDK_AR}"
+    #DDC_RANLIB="${cross_prefix}${DDK_RANLIB}"
 }
 
 ddk_make_base_environments(){
@@ -471,15 +470,15 @@ ddk_ready_ddk_env_home
 . "${DDK_ENV_HOME}/build/lib/make_calls.sh"
 . "${DDK_ENV_HOME}/build/lib/make_plo.sh"
 
-ddk_ready_base_environments
-
 ddk_check_os
-
-ddk_make_base_environments
 
 ddk_target_environments
 
 ddk_target_start
+
+ddk_ready_base_environments
+
+ddk_make_base_environments
 
 ddkinfo
 

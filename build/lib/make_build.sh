@@ -44,7 +44,6 @@ BUILD_STATIC_LIBRARY(){
     ddk_build_version
     ddk_build_objects
 
-
     if [ "$tmp_static_libs" = "" ]; then
         tmp_ck_last_obj="${LOCAL_MODULE}.${DDC_STATIC_LIB_EXT}"
         tmp_ck_last_cmd="${DDC_AR} rcs ${tmp_ck_last_obj} ${tmp_objs}"
@@ -54,7 +53,10 @@ BUILD_STATIC_LIBRARY(){
         tmp_ck_last_obj="${LOCAL_MODULE}-${tmp_ck_last_date}.${DDC_STATIC_LIB_EXT}"
         tmp_ck_last_cmd="${DDC_AR} rcs ${tmp_ck_last_obj} ${tmp_objs}"
     fi
-    ddk_build_last_object
+
+    if [ "${tmp_objs}" != "" ]; then
+      ddk_build_last_object
+    fi
 
     if [ "$tmp_static_libs" != "" ]; then
         tmp_current=`pwd`
@@ -77,9 +79,14 @@ BUILD_STATIC_LIBRARY(){
         #    ddk_exit $? "error: rm $tmp_ck_last_obj in $DDK_ENV_TARGET_BUILD"
         #fi
 
-        libtool -static ${tmp_ck_last_obj} ${tmp_static_libs} -o ${tmp_ck_origin_obj} > /dev/null 2>&1
-        res=$?
-        rm $tmp_ck_last_obj
+        if [ -f $tmp_ck_last_obj ]; then
+            libtool -static ${tmp_ck_last_obj} ${tmp_static_libs} -o ${tmp_ck_origin_obj} > /dev/null
+            res=$?
+            rm -f $tmp_ck_last_obj
+        else
+            libtool -static ${tmp_static_libs} -o ${tmp_ck_origin_obj} > /dev/null
+            res=$?
+        fi
         ddk_exit $res "error: libtool -static ${tmp_ck_last_obj} ${tmp_static_libs} -o ${tmp_ck_origin_obj}"
 
 
@@ -146,12 +153,12 @@ BUILD_SHARED_LIBRARY(){
 
     tmp_ck_last_obj="${tmp_objname}"
     if [ $tmp_noversion -ne 0 ]; then
-        tmp_ck_last_cmd="${DDC_CXX} ${tmp_last_cflags} -shared -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
+        tmp_ck_last_cmd="${DDC_CXX} ${tmp_last_cflags} -shared -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${DDK_CROSS_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
     else
         if [ ${DDK_ENV_TARGET_OS} = "darwin" ]; then
-            tmp_ck_last_cmd="${DDC_CXX} ${tmp_last_cflags} -dynamiclib -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
+            tmp_ck_last_cmd="${DDC_CXX} ${tmp_last_cflags} -dynamiclib -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${DDK_CROSS_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
         else
-            tmp_ck_last_cmd="${DDC_CXX} ${tmp_last_cflags} -shared -Wl,-soname,${tmp_soname} -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
+            tmp_ck_last_cmd="${DDC_CXX} ${tmp_last_cflags} -shared -Wl,-soname,${tmp_soname} -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${DDK_CROSS_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
         fi
     fi
 
@@ -312,7 +319,8 @@ ddk_build_src(){
 
     tmp_tool=$(ddk_build_get_tool "${tmp_ext}")
     #tmp_cflags=$(ddk_build_get_cflags)
-    tmp_cflags="${DDC_CFLAGS}"
+    tmp_cflags="${DDK_CROSS_CFLAGS} ${DDK_CROSS_CPPFLAGS}"
+    tmp_cflags="${tmp_cflags} ${DDC_CFLAGS}"
     tmp_cflags="${tmp_cflags} -DGLOBAL_MAJOR_VERSION=${GLOBAL_MAJOR_VERSION}"
     tmp_cflags="${tmp_cflags} -DGLOBAL_MINOR_VERSION=${GLOBAL_MINOR_VERSION}"
     tmp_cflags="${tmp_cflags} -DGLOBAL_PATCH_VERSION=${GLOBAL_PATCH_VERSION}"
