@@ -1,36 +1,23 @@
 #!/bin/sh
 
-IOS_PWD=`pwd`
-IOS_SDKVERSION=`xcrun -sdk iphoneos --show-sdk-version`
-#TVOS_SDKVERSION=`xcrun -sdk appletvos --show-sdk-version`
-# To set "enable-ec_nistp_64_gcc_128" configuration for x64 archs set next variable to "true"
-IOS_ENABLE_EC_NISTP_64_GCC_128=""
-IOS_XCODE_PATH=`xcode-select -print-path`
-IOS_PLATFORM=""
+# -------------------------------------------------------
+
+XCODE_PATH=`xcode-select -print-path`
 
 # -------------------------------------------------------
 
-ddk_crosscp_print(){
-    echo ""
-    echo " IOS_SDKVERSION : ${IOS_SDKVERSION}"
-    echo " IOS_XCODE_PATH : ${IOS_XCODE_PATH}"
-    echo " IOS_ARCH       : ${IOS_ARCH}"
-    echo " IOS_SDK        : ${IOS_SDK}"
-    echo " DDK_DEVROOT    : ${DDK_DEVROOT}"
-    echo " DDK_SDKROOT    : ${DDK_SDKROOT}"
-    echo ""
-}
-
 ddk_crosscp_ready(){
-    IOS_ARCH=$DDK_ENV_TARGET_CPU
+    local ARCH=$DDK_ENV_TARGET_CPU
+    local PLATFORM=""
+    local VERSION=""
 
-    if [ ! -d "${IOS_XCODE_PATH}" ]; then
+    if [ ! -d "${XCODE_PATH}" ]; then
         echo "xcode path is not set correctly "
-        echo "${IOS_XCODE_PATH} does not exist."
+        echo "${XCODE_PATH} does not exist."
         exit 1
     fi
 
-    case $IOS_XCODE_PATH in
+    case $XCODE_PATH in
         *\ * )
             echo "Your Xcode path contains whitespaces, "
             echo "which is not supported."
@@ -38,7 +25,8 @@ ddk_crosscp_ready(){
         ;;
     esac
 
-    case $IOS_PWD in
+    local ios_PWD=`pwd`
+    case $ios_PWD in
         *\ * )
             echo "Your path contains whitespaces, "
             echo "which is not supported by 'make install'."
@@ -46,45 +34,49 @@ ddk_crosscp_ready(){
         ;;
     esac
 
-    if [[ "${IOS_ARCH}" == "i386" || "${IOS_ARCH}" == "x86_64" ]]; then
-        IOS_PLATFORM="iPhoneSimulator"
-    elif [ "${IOS_ARCH}" == "tv_x86_64" ]; then
-        IOS_ARCH="x86_64"
-        IOS_PLATFORM="AppleTVSimulator"
-    elif [ "${IOS_ARCH}" == "tv_arm64" ]; then
-        IOS_ARCH="arm64"
-        IOS_PLATFORM="AppleTVOS"
+    if [[ "${ARCH}" == "i386" || "${ARCH}" == "x86_64" ]]; then
+        PLATFORM="iPhoneSimulator"
+        VERSION=`xcrun -sdk iphoneos --show-sdk-version`
+    elif [ "${ARCH}" == "tv_x86_64" ]; then
+        ARCH="x86_64"
+        PLATFORM="AppleTVSimulator"
+        VERSION=`xcrun -sdk appletvos --show-sdk-version`
+    elif [ "${ARCH}" == "tv_arm64" ]; then
+        ARCH="arm64"
+        PLATFORM="AppleTVOS"
+        VERSION=`xcrun -sdk appletvos --show-sdk-version`
     else
-        IOS_PLATFORM="iPhoneOS"
+        PLATFORM="iPhoneOS"
+        VERSION=`xcrun -sdk iphoneos --show-sdk-version`
     fi
 
-    IOS_SDK="${IOS_PLATFORM}${IOS_SDKVERSION}.sdk"
-    DDK_DEVROOT=${IOS_XCODE_PATH}/Platforms/${IOS_PLATFORM}.platform/Developer
-    DDK_SDKROOT=${DDK_DEVROOT}/SDKs/${IOS_SDK}
+    local CFLAGS="${DDK_CROSS_CFLAGS} -pipe -Wno-unused-value"
+    case $CFLAGS in
+        armv7s) CFLAGS="${CFLAGS} -miphoneos-version-min=6" ;;
+        arm64) CFLAGS="${CFLAGS} -miphoneos-version-min=7" ;;
+        x86_64) CFLAGS="${CFLAGS} -miphoneos-version-min=8" ;;
+    esac
 
-    DDK_CROSS_CFLAGS="-arch ${IOS_ARCH} -mcpu=cortex-a8 -marm"
-    if [[ $SDKVERSION == 9.* ]]; then
-        DDK_CROSS_CFLAGS="${DDK_CROSS_CFLAGS} -fembed-bitcode"
-        DDK_CROSS_CPPFLAGS=""
-    else
-        DDK_CROSS_CPPFLAGS=""
+    CFLAGS="${CFLAGS} -arch ${ARCH} -mcpu=cortex-a8 -marm"
+    if [[ $VERSION == 9.* ]]; then
+        CFLAGS="${CFLAGS} -fembed-bitcode"
     fi
 
-    DDK_CROSS_CFLAGS="${DDK_CROSS_CFLAGS} -isysroot ${DDK_SDKROOT}"
-    DDK_CROSS_LDFLAGS="${DDK_CROSS_LDFLAGS} -isysroot ${DDK_SDKROOT}"
-    DDK_CROSS_LDFLAGS="${DDK_CROSS_LDFLAGS}  -Wl, -syslibroot ${DDK_SDKROOT}"
-    DDK_CROSS_HOME="${IOS_XCODE_PATH}/usr/bin"
+    local XCODE_SDK=${PLATFORM}${VERSION}.sdk
+    local DEVROOT=${XCODE_PATH}/Platforms/${PLATFORM}.platform/Developer
+    local SDKROOT=${DEVROOT}/SDKs/${XCODE_SDK}
+
+    DDK_CROSS_CFLAGS="${CFLAGS} -isysroot ${SDKROOT}"
+    DDK_CROSS_LDFLAGS="${DDK_CROSS_LDFLAGS} -arch ${ARCH} --sysroot ${SDKROOT}"
+    DDK_CROSS_HOME="${XCODE_PATH}/Toolchains/XcodeDefault.xctoolchain/usr/bin"
     DDK_CROSS_PREFIX=""
     DDK_ENV_INCLUDES=""
+    DDK_CC="clang"
+    DDK_CXX="clang++"
 
-#    echo " DDK_CROSS_HOME : $DDK_CROSS_HOME"
 }
-
 
 # -------------------------------------------------------
 
 ddk_crosscp_ready
-
-#ddk_crosscp_print
-
 

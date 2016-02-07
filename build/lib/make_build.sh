@@ -144,7 +144,8 @@ BUILD_SHARED_LIBRARY(){
 
     tmp_static_archives=""
     if [ "${tmp_static_short_libs}" != "" ]; then
-        if [ ${DDK_ENV_TARGET_OS} = "darwin" ]; then
+        if [[ ${DDK_ENV_TARGET_OS} = "darwin" ||
+              ${DDK_ENV_TARGET_OS} = "ios" ]]; then
             tmp_static_archives="-Wl,-all_load ${tmp_static_short_libs}"
         else
             tmp_static_archives="-Wl,--whole-archive ${tmp_static_short_libs} -Wl,--no-whole-archive"
@@ -201,13 +202,14 @@ BUILD_EXCUTABLE(){
     if [ "${tmp_objs}" != "" ]; then
         tmp_static_archives=""
         if [ "${tmp_static_short_libs}" != "" ]; then
-            if [ ${DDK_ENV_TARGET_OS} = "darwin" ]; then
+            if [[ ${DDK_ENV_TARGET_OS} = "darwin" ||
+                 ${DDK_ENV_TARGET_OS} = "ios" ]]; then
                 tmp_static_archives="-Wl,-all_load ${tmp_static_short_libs}"
             else
                 tmp_static_archives="-Wl,--whole-archive ${tmp_static_short_libs} -Wl,--no-whole-archive"
             fi
         fi
-        tmp_ck_last_cmd="${DDC_CXX} -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
+        tmp_ck_last_cmd="${DDC_CXX} ${DDC_LDFLAGS} ${DDK_CROSS_LDFLAGS} -o ${tmp_ck_last_obj} ${tmp_objs}  ${DDC_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
         ddk_build_last_object
     fi
 
