@@ -87,12 +87,49 @@ call_install(){
 #
 # -----------------------------------------------------------------
 
+call_package_get_pkgname(){
+    # 1: mod, 2: version 3: dst
+    # $(call_package_get_pkgname "")
+    local pkgnm=""
+    if [ "${2}" != "" ]; then
+        pkgnm="${1}-${2}-${3}"
+    else
+        pkgnm="${1}-${3}"
+    fi
+
+    if [ "${DDK_ENV_OSNAME}" = "" ]; then
+        pkgnm="${pkgnm}-unknownos"
+    else
+        case $DDK_ENV_OSNAME in
+        linux)
+          if test -f "/etc/issue" ; then
+            local issue=""
+              issue=`cat /etc/issue`
+              issue=`expr "$issue" : '^\([a-zA-Z0-0]\{1,\}\)[[:blank:]]\{1,\}'`
+              issue=`echo "$issue" | tr '[A-Z]' '[a-z]'`
+              pkgnm="${pkgnm}-${issue}"
+          else
+              pkgnm="${pkgnm}-${DDK_ENV_OSNAME}"
+          fi
+        ;;
+        *)
+            pkgnm="${pkgnm}-${DDK_ENV_OSNAME}"
+        ;;
+        esac
+    fi
+    echo $pkgnm
+}
+
 call_package_start(){
     tmp_pkg_nm=""
     tmp_pkg_target=""
     tmp_pkg_dst=""
     tmp_pkg_path=""
+    tmp_pkg_mod=""
+    tmp_pkg_version=""
 
+    local tmp_a_va=""
+    local tmp_c=""
     tmp_a_va=$(echo "$@" | tr "," "\n")
     tmp_c=0
     for tmp_x in $tmp_a_va
@@ -101,6 +138,8 @@ call_package_start(){
         case "$tmp_c" in
         1) tmp_pkg_target=$tmp_x ;;
         2) tmp_pkg_dst=$tmp_x ;;
+        3) tmp_pkg_mod=$tmp_x ;;
+        4) tmp_pkg_version=$tmp_x ;;
         esac
     done
 
@@ -118,19 +157,8 @@ call_package_start(){
     *) ddk_exit 1 "  Has not pkg-target (deb,sis) (1)" ;;
     esac
 
-    if [ "${LOCAL_VERSION}" != "" ]; then
-        tmp_pkg_nm="${LOCAL_MODULE}-${LOCAL_VERSION}-${tmp_pkg_dst}"
-    else
-        tmp_pkg_nm="${LOCAL_MODULE}-${tmp_pkg_dst}"
-    fi
-
-    if [ "${DDK_ENV_OSNAME}" != "" ]; then
-        tmp_pkg_nm="${tmp_pkg_nm}-${DDK_ENV_OSNAME}"
-    else
-        tmp_pkg_nm="${tmp_pkg_nm}-unknownos"
-    fi
-
-    tmp_pkg_path="${DDK_ENV_TARGET_PKG}/${LOCAL_MODULE}/${tmp_pkg_target}/${tmp_pkg_nm}"
+    tmp_pkg_nm=$(call_package_get_pkgname "${tmp_pkg_mod}" "${tmp_pkg_version}" "${tmp_pkg_dst}")
+    tmp_pkg_path="${DDK_ENV_TARGET_PKG}/${tmp_pkg_mod}/${tmp_pkg_target}/${tmp_pkg_nm}"
     echo "    Purpose: [${tmp_pkg_path}]\n"
 
     if test -d $tmp_pkg_path; then
@@ -239,6 +267,8 @@ call_package_end(){
 }
 
 call_package_install(){
+    local tmp_a_va=""
+    local tmp_c=""
     tmp_a_va=$(echo "$@" | tr "," "\n")
     tmp_c=0
     for tmp_x in $tmp_a_va
@@ -247,6 +277,8 @@ call_package_install(){
         case "$tmp_c" in
         1) tmp_pkg_target=$tmp_x ;;
         2) tmp_pkg_dst=$tmp_x ;;
+        3) tmp_pkg_mod=$tmp_x ;;
+        4) tmp_pkg_version=$tmp_x ;;
         esac
     done
 
@@ -264,19 +296,8 @@ call_package_install(){
     *) ddk_exit 1 "  Has not pkg-target (deb,sis) for install package (1)" ;;
     esac
 
-    if [ "${LOCAL_VERSION}" != "" ]; then
-        tmp_pkg_nm="${LOCAL_MODULE}-${LOCAL_VERSION}-${tmp_pkg_dst}"
-    else
-        tmp_pkg_nm="${LOCAL_MODULE}-${tmp_pkg_dst}"
-    fi
-
-    if [ "${DDK_ENV_OSNAME}" != "" ]; then
-        tmp_pkg_nm="${tmp_pkg_nm}-${DDK_ENV_OSNAME}"
-    else
-        tmp_pkg_nm="${tmp_pkg_nm}-unknownos"
-    fi
-
-    tmp_pkg_path_p="${DDK_ENV_TARGET_PKG}/${LOCAL_MODULE}/${tmp_pkg_target}"
+    tmp_pkg_nm=$(call_package_get_pkgname "${tmp_pkg_mod}" "${tmp_pkg_version}" "${tmp_pkg_dst}")
+    tmp_pkg_path_p="${DDK_ENV_TARGET_PKG}/${tmp_pkg_mod}/${tmp_pkg_target}"
     tmp_pkg_path="${tmp_pkg_path_p}/${tmp_pkg_nm}"
 
     case "$tmp_pkg_target" in
