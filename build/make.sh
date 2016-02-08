@@ -36,6 +36,7 @@ DDK_CC="gcc"
 DDK_CXX="g++"
 DDK_AR="ar"
 DDK_RANLIB="ranlib"
+DDK_LIBTOOL="libtool"
 
 DDK_CROSS_HOME="/usr/bin"
 DDK_CROSS_PREFIX=""
@@ -44,6 +45,7 @@ DDC_CC=""
 DDC_CXX=""
 DDC_AR=""
 DDC_RANLIB=""
+DDC_LIBTOOL=""
 DDC_PWD=""
 DDC_CFLAGS=""
 DDC_LDFLAGS=""
@@ -184,6 +186,7 @@ ddkinfo(){
     echo "  DDK_CXX                : [${DDK_CXX}]"
     echo "  DDK_AR                 : [${DDK_AR}]"
     echo "  DDK_RANLIB             : [${DDK_RANLIB}]"
+    echo "  DDK_LIBTOOL            : [${DDK_LIBTOOL}]"
     echo "  DDK_CROSS_PREFIX       : [${DDK_CROSS_PREFIX}]"
     echo "  DDK_CROSS_HOME         : [${DDK_CROSS_HOME}]"
     echo "  DDK_CROSS_CFLAGS       : [${DDK_CROSS_CFLAGS}]"
@@ -358,6 +361,7 @@ ddk_ready_base_environments(){
     DDC_CXX="${cross_prefix}${DDK_CXX}"
     DDC_AR="${cross_prefix}${DDK_AR}"
     DDC_RANLIB="${cross_prefix}${DDK_RANLIB}"
+    DDC_LIBTOOL="${cross_prefix}${DDK_LIBTOOL}"
 }
 
 ddk_make_base_environments(){

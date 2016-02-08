@@ -11,6 +11,20 @@ CLEAR_VARS(){
     TEST_A=called
 }
 
+
+build_get_static_archives(){
+    # $(build_get_static_archives "")
+    # $1 : $tmp_static_short_libs
+    local archives=""
+    if [ "$1" != "" ]; then
+        case $DDK_ENV_TARGET_OS in
+        darwin|ios) archives="-Wl,-all_load $1" ;;
+        *) archives="-Wl,--whole-archive $1 -Wl,--no-whole-archive" ;;
+        esac
+    fi
+    echo "${archives}"
+}
+
 build_addlib_static_libs(){
     tmp_c=0
     if [ "${2}" = "" ]; then
@@ -35,6 +49,62 @@ build_addlib_static_libs(){
     tmp_addlibs=$tmp_buf
 }
 
+build_make_static_archives(){
+    local current=""
+    current=`pwd`
+    if [ "$tmp_static_libs" = "" ]; then
+        return 0
+    fi
+
+    cd $DDK_ENV_TARGET_BUILD
+    ddk_exit $? "error: cd $DDK_ENV_TARGET_BUILD"
+
+    local use_libtool=0
+    local res=""
+    if test -f $DDC_LIBTOOL ; then
+        case $DDK_ENV_TARGET_OS in
+        darwin|ios) use_libtool=1 ;;
+        esac
+    fi
+
+    if [ $use_libtool -eq 1 ] ; then
+        if [ -f $tmp_ck_last_obj ]; then
+            libtool -static ${tmp_ck_last_obj} ${tmp_static_libs} -o ${tmp_ck_origin_obj} > /dev/null
+            res=$?
+            rm -f $tmp_ck_last_obj
+        else
+            libtool -static ${tmp_static_libs} -o ${tmp_ck_origin_obj} > /dev/null
+            res=$?
+        fi
+        ddk_exit $res "error: libtool -static ${tmp_ck_last_obj} ${tmp_static_libs} -o ${tmp_ck_origin_obj}"
+    else
+        if [ -f $tmp_ck_last_obj ]; then
+            build_addlib_static_libs "${tmp_ck_origin_obj}" "${tmp_ck_last_obj}" "${tmp_static_libs}"
+        else
+            build_addlib_static_libs "${tmp_ck_origin_obj}" "" "${tmp_static_libs}"
+        fi
+        #echo $tmp_addlibs
+        #echo "build_addlib_static_libs \"${tmp_ck_origin_obj}\" \"${tmp_ck_last_obj}\" \"${tmp_static_libs}\""
+        if [ "$tmp_addlibs" != "" ]; then
+            local tmp_ddc_ar=""
+            tmp_ddc_ar="${DDC_AR} -M"
+            `echo "${tmp_addlibs}" | ${tmp_ddc_ar}`
+            res=$?
+            if test -f tmp_ck_last_obj ; then
+                rm $tmp_ck_last_obj
+            fi
+            ddk_exit $res "error: echo -e ${tmp_addlibs} | ${tmp_ddc_ar}"
+        else
+            rm $tmp_ck_last_obj
+            ddk_exit $? "error: rm $tmp_ck_last_obj in $DDK_ENV_TARGET_BUILD"
+        fi
+    fi        
+
+    tmp_ck_last_obj=$tmp_ck_origin_obj
+    cd $current
+    return 0
+}
+
 BUILD_STATIC_LIBRARY(){
     if [ "${DDK_ENV_CMD}" != "" ]; then
         return 0
@@ -54,57 +124,29 @@ BUILD_STATIC_LIBRARY(){
         tmp_ck_last_cmd="${DDC_AR} rcs ${tmp_ck_last_obj} ${tmp_objs}"
     fi
 
+    local use_build=0
     if [ "${tmp_objs}" != "" ]; then
+      use_build=1
       ddk_build_last_object
     fi
 
-    if [ "$tmp_static_libs" != "" ]; then
-        tmp_current=`pwd`
-        cd $DDK_ENV_TARGET_BUILD
-        ddk_exit $? "error: cd $DDK_ENV_TARGET_BUILD"
+    build_make_static_archives
 
-        
-#build_addlib_static_libs "${tmp_ck_origin_obj}" "${tmp_ck_last_obj}" "${tmp_static_libs}"
-#echo $tmp_addlibs
-#echo build_addlib_static_libs \"${tmp_ck_origin_obj}\" \"${tmp_ck_last_obj}\" \"${tmp_static_libs}\"
-#exit 1
-        #if [ "$tmp_addlibs" != "" ]; then
-            #tmp_ddc_ar="${DDC_AR} -M"
-            #`echo -e "${tmp_addlibs}" | ${tmp_ddc_ar}`
-            #res=$?
-            #rm $tmp_ck_last_obj
-            #ddk_exit $res "error: echo -e ${tmp_addlibs} | ${tmp_ddc_ar}"
-        #else
-        #    rm $tmp_ck_last_obj
-        #    ddk_exit $? "error: rm $tmp_ck_last_obj in $DDK_ENV_TARGET_BUILD"
-        #fi
-
-        if [ -f $tmp_ck_last_obj ]; then
-            libtool -static ${tmp_ck_last_obj} ${tmp_static_libs} -o ${tmp_ck_origin_obj} > /dev/null
-            res=$?
-            rm -f $tmp_ck_last_obj
-        else
-            libtool -static ${tmp_static_libs} -o ${tmp_ck_origin_obj} > /dev/null
-            res=$?
-        fi
-        ddk_exit $res "error: libtool -static ${tmp_ck_last_obj} ${tmp_static_libs} -o ${tmp_ck_origin_obj}"
-
-
-        tmp_ck_last_obj=$tmp_ck_origin_obj
-        cd $tmp_current
-    fi
-
-    tmp_current=`pwd`
+    local current=""
+    current=`pwd`
     cd $DDK_ENV_TARGET_BUILD
     ddk_exit $? "error: cd $DDK_ENV_TARGET_BUILD"
 
     $DDC_RANLIB "${tmp_ck_last_obj}"
     res=$?
-    cd $tmp_current
+    cd $current
     if [ $res -ne 0 ]; then
        ddk_exit 1 "    \033[31mERROR: $DDC_RANLIB ${tmp_ck_last_obj}\033[0m"
     fi
 
+    if [ $use_build -ne 1 ]; then
+        echo "    \`-- \033[32mMake ${tmp_ck_last_obj} ... OK\033[0m"
+    fi
     echo ""
 }
 
@@ -142,24 +184,16 @@ BUILD_SHARED_LIBRARY(){
         fi
     fi
 
-    tmp_static_archives=""
-    if [ "${tmp_static_short_libs}" != "" ]; then
-        if [[ ${DDK_ENV_TARGET_OS} = "darwin" ||
-              ${DDK_ENV_TARGET_OS} = "ios" ]]; then
-            tmp_static_archives="-Wl,-all_load ${tmp_static_short_libs}"
-        else
-            tmp_static_archives="-Wl,--whole-archive ${tmp_static_short_libs} -Wl,--no-whole-archive"
-        fi
-    fi
-
+    local archives=""
+    archives=$(build_get_static_archives "${tmp_static_short_libs}")
     tmp_ck_last_obj="${tmp_objname}"
     if [ $tmp_noversion -ne 0 ]; then
-        tmp_ck_last_cmd="${DDC_CXX} ${tmp_last_cflags} -shared -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${DDK_CROSS_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
+        tmp_ck_last_cmd="${DDC_CXX} ${tmp_last_cflags} -shared -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${DDK_CROSS_LDFLAGS} ${tmp_shared_libs} ${archives}"
     else
         if [ ${DDK_ENV_TARGET_OS} = "darwin" ]; then
-            tmp_ck_last_cmd="${DDC_CXX} ${tmp_last_cflags} -dynamiclib -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${DDK_CROSS_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
+            tmp_ck_last_cmd="${DDC_CXX} ${tmp_last_cflags} -dynamiclib -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${DDK_CROSS_LDFLAGS} ${tmp_shared_libs} ${archives}"
         else
-            tmp_ck_last_cmd="${DDC_CXX} ${tmp_last_cflags} -shared -Wl,-soname,${tmp_soname} -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${DDK_CROSS_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
+            tmp_ck_last_cmd="${DDC_CXX} ${tmp_last_cflags} -shared -Wl,-soname,${tmp_soname} -o ${tmp_ck_last_obj} ${tmp_objs} ${DDC_LDFLAGS} ${DDK_CROSS_LDFLAGS} ${tmp_shared_libs} ${archives}"
         fi
     fi
 
@@ -200,16 +234,9 @@ BUILD_EXCUTABLE(){
     fi
 
     if [ "${tmp_objs}" != "" ]; then
-        tmp_static_archives=""
-        if [ "${tmp_static_short_libs}" != "" ]; then
-            if [[ ${DDK_ENV_TARGET_OS} = "darwin" ||
-                 ${DDK_ENV_TARGET_OS} = "ios" ]]; then
-                tmp_static_archives="-Wl,-all_load ${tmp_static_short_libs}"
-            else
-                tmp_static_archives="-Wl,--whole-archive ${tmp_static_short_libs} -Wl,--no-whole-archive"
-            fi
-        fi
-        tmp_ck_last_cmd="${DDC_CXX} ${DDC_LDFLAGS} ${DDK_CROSS_LDFLAGS} -o ${tmp_ck_last_obj} ${tmp_objs}  ${DDC_LDFLAGS} ${tmp_shared_libs} ${tmp_static_archives}"
+        local archives=""
+        archives=$(build_get_static_archives "${tmp_static_short_libs}")
+        tmp_ck_last_cmd="${DDC_CXX} ${DDC_LDFLAGS} ${DDK_CROSS_LDFLAGS} -o ${tmp_ck_last_obj} ${tmp_objs}  ${DDC_LDFLAGS} ${tmp_shared_libs} ${archives}"
         ddk_build_last_object
     fi
 

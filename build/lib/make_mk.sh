@@ -532,11 +532,12 @@ ddk_load_mk(){
         ddk_exit 1 "ERROR: input file mtime : $tmp_mk_time_input"
     fi
 
-    if [[ $tmp_mk_time_input -ne 0 && $tmp_mk_time_input -eq $tmp_mk_time_output ]]; then
-        ddk_excute_mk "${1}" "${2}" "${tmp_mk_output}"
-        return 0
+    if [ $tmp_mk_time_input -ne 0 ]; then
+        if [ $tmp_mk_time_input -eq $tmp_mk_time_output ]; then
+            ddk_excute_mk "${1}" "${2}" "${tmp_mk_output}"
+            return 0
+        fi
     fi
-
 
     if [ "${2}" = "Dframework.mk" ]; then
     if test -d "${tmp_mk_output_folder}"; then
