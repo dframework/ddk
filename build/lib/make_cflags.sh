@@ -126,7 +126,7 @@ ddk_cflags_add_libs(){
       tmp_p=$(ddk_ldflags_get_lib_path "${tmp_x}")
       if [ $? -eq 1 ]; then
         if [ "${tmp_p}" != "" ]; then
-          DDC_LDFLAGS="${DDC_LDFLAGS} -L${tmp_p}"
+          DDC_LDFLAGS="-L${tmp_p} ${DDC_LDFLAGS}"
           ddk_ldflags_paths="${ddk_ldflags_paths} ${tmp_p}"
         fi
       else
