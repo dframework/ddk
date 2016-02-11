@@ -88,8 +88,13 @@ build_make_static_archives(){
         if [ "$tmp_addlibs" != "" ]; then
             local tmp_ddc_ar=""
             tmp_ddc_ar="${DDC_AR} -M"
-            `echo "${tmp_addlibs}" | ${tmp_ddc_ar}`
-            res=$?
+            if [ "$DDK_ENV_OSNAME" = "centos" ]; then
+                `echo -e "${tmp_addlibs}" | ${tmp_ddc_ar}`
+                res=$?
+            else
+                `echo "${tmp_addlibs}" | ${tmp_ddc_ar}`
+                res=$?
+            fi
             if test -f tmp_ck_last_obj ; then
                 rm $tmp_ck_last_obj
             fi
@@ -460,5 +465,6 @@ ddk_build_last_object(){
     tmp_test="(${tmp_build_count}/${tmp_src_count})"
     echo "    \`-- \033[32mMake ${tmp_ck_last_obj} ${tmp_test} ... OK\033[0m"
 }
+
 
 

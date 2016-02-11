@@ -63,6 +63,14 @@ case "${DDK_ENV_OSNAME}" in
         DDK_ENV_TARGET_OS="darwin"
         DDC_SHARED_LIB_EXT="dylib"
     ;;
+    linux)
+        if test -f "/etc/issue" ; then
+            issue=`cat /etc/issue`
+            issue=`expr "$issue" : '^\([a-zA-Z0-0]\{1,\}\)[[:blank:]]\{1,\}'`
+            issue=`echo "$issue" | tr '[A-Z]' '[a-z]'`
+            DDK_ENV_OSNAME=$issue
+        fi
+    ;;
 esac
 # -------------------------------------------------------------------
 
@@ -496,4 +504,5 @@ if [ $DDK_ENV_NO_PRINT -eq 0 ]; then
     echo "  OK"
     echo ""
 fi
+
 
