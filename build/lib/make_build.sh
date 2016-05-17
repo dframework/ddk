@@ -150,7 +150,9 @@ BUILD_STATIC_LIBRARY(){
        ddk_exit 1 "    \033[31mERROR: $DDC_RANLIB ${tmp_ck_last_obj}\033[0m"
     fi
 
-    echo "    \`-- \033[32mMake ${tmp_ck_last_obj} ... OK\033[0m"
+    if [ "$tmp_ck_origin_obj" != "" ]; then
+        echo "    \`-- \033[32mMake ${tmp_ck_last_obj} ... OK\033[0m"
+    fi
     echo ""
 }
 
