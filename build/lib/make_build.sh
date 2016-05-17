@@ -55,7 +55,6 @@ build_make_static_archives(){
     if [ "$tmp_static_libs" = "" ]; then
         return 0
     fi
-
     cd $DDK_ENV_TARGET_BUILD
     ddk_exit $? "error: cd $DDK_ENV_TARGET_BUILD"
 
@@ -69,11 +68,11 @@ build_make_static_archives(){
 
     if [ $use_libtool -eq 1 ] ; then
         if [ -f $tmp_ck_last_obj ]; then
-            libtool -static ${tmp_ck_last_obj} ${tmp_static_libs} -o ${tmp_ck_origin_obj} > /dev/null
+            libtool -static ${tmp_ck_last_obj} ${tmp_static_libs} -o ${tmp_ck_origin_obj} > /dev/null 2>&1
             res=$?
-            rm -f $tmp_ck_last_obj
+            rm -rf $tmp_ck_last_obj
         else
-            libtool -static ${tmp_static_libs} -o ${tmp_ck_origin_obj} > /dev/null
+            libtool -static ${tmp_static_libs} -o ${tmp_ck_origin_obj} > /dev/null 2>&1
             res=$?
         fi
         ddk_exit $res "error: libtool -static ${tmp_ck_last_obj} ${tmp_static_libs} -o ${tmp_ck_origin_obj}"
@@ -96,16 +95,14 @@ build_make_static_archives(){
                 res=$?
             fi
             if test -f tmp_ck_last_obj ; then
-                rm $tmp_ck_last_obj
+                rm -rf $tmp_ck_last_obj
             fi
             ddk_exit $res "error: echo -e ${tmp_addlibs} | ${tmp_ddc_ar}"
         else
             rm $tmp_ck_last_obj
             ddk_exit $? "error: rm $tmp_ck_last_obj in $DDK_ENV_TARGET_BUILD"
         fi
-    fi        
-
-    tmp_ck_last_obj=$tmp_ck_origin_obj
+    fi
     cd $current
     return 0
 }
@@ -120,6 +117,7 @@ BUILD_STATIC_LIBRARY(){
     ddk_build_objects
 
     if [ "$tmp_static_libs" = "" ]; then
+        tmp_ck_origin_obj=""
         tmp_ck_last_obj="${LOCAL_MODULE}.${DDC_STATIC_LIB_EXT}"
         tmp_ck_last_cmd="${DDC_AR} rcs ${tmp_ck_last_obj} ${tmp_objs}"
     else
@@ -129,29 +127,30 @@ BUILD_STATIC_LIBRARY(){
         tmp_ck_last_cmd="${DDC_AR} rcs ${tmp_ck_last_obj} ${tmp_objs}"
     fi
 
-    local use_build=0
     if [ "${tmp_objs}" != "" ]; then
-      use_build=1
       ddk_build_last_object
     fi
 
     build_make_static_archives
+
+    if [ "$tmp_ck_origin_obj" != "" ]; then
+        tmp_ck_last_obj=$tmp_ck_origin_obj
+    fi
 
     local current=""
     current=`pwd`
     cd $DDK_ENV_TARGET_BUILD
     ddk_exit $? "error: cd $DDK_ENV_TARGET_BUILD"
 
-    $DDC_RANLIB "${tmp_ck_last_obj}"
+    $DDC_RANLIB "${tmp_ck_last_obj}" > /dev/null 2>&1
     res=$?
+
     cd $current
     if [ $res -ne 0 ]; then
        ddk_exit 1 "    \033[31mERROR: $DDC_RANLIB ${tmp_ck_last_obj}\033[0m"
     fi
 
-    if [ $use_build -ne 1 ]; then
-        echo "    \`-- \033[32mMake ${tmp_ck_last_obj} ... OK\033[0m"
-    fi
+    echo "    \`-- \033[32mMake ${tmp_ck_last_obj} ... OK\033[0m"
     echo ""
 }
 
