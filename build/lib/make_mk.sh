@@ -393,6 +393,13 @@ ddk_compile_mk(){
         continue
       fi
 
+      cmt=`expr "$line" : '\(^[[:blank:]]*\@\)'`
+      if [ "${cmt}" = "@" ]; then
+         tmp_val=`expr "$line" : '^[[:blank:]]*\@\([[:print:]]*\)'`
+         ddk_compile_add "${tmp_val}"
+        continue
+      fi
+
       tmp_cmd=`expr "$line" : '\(^[a-zA-Z0-9_-]\{1,\}\)[[:blank:]\:\{1,\}]*'`
       if [ "${tmp_cmd}" = "" ]; then
         tmp_call=`expr "$line" : '^[[:blank:]]*\$(\([[:print:]]\{1,\}\))[[:blank:]]*$'`
