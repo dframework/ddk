@@ -77,45 +77,25 @@ esac
 
 ddk_check_os(){
     case "${DDK_ENV_TARGET_OS}" in
-    linux)
-        return 0
-    ;;
-    windows)
-        return 0
-    ;;
-    darwin)
-        return 0
-    ;;
-    ios)
-        return 0
-    ;;
-    android)
-        return 0
-    ;;
+    linux) return 0 ;;
+    windows) return 0 ;;
+    darwin) return 0 ;;
+    ios) return 0 ;;
+    android) return 0 ;;
     esac
     ddk_exit 1 "ERROR: Unknown target os (${1}). --print-os-list"
 }
 
 ddk_check_cpu(){
     case "${DDK_ENV_TARGET_CPU}" in
-    x86)
-        return 0
-    ;;
-    x86_64)
-        return 0
-    ;;
-    amd64)
-        return 0
-    ;;
-    i686)
-        return 0
-    ;;
-    i386)
-        return 0
-    ;;
-    armv7)
-        return 0
-    ;;
+    x86) return 0 ;;
+    x86_64) return 0 ;;
+    amd64) return 0 ;;
+    i686) return 0 ;;
+    i386) return 0 ;;
+    armv7) return 0 ;;
+    armv7s) return 0 ;;
+    arm64) return 0 ;;
     esac
     ddk_exit 1 "ERROR: Unknown target cpu (${1}). --print-cpu-list"
 }
@@ -128,6 +108,7 @@ ddk_print_os_list(){
     echo "  DDK target os list"
     echo "  ------------------"
     echo "    linux"
+    echo "    darwin"
     echo "    windows"
     echo "    ios"
     echo "    android"
@@ -147,6 +128,8 @@ ddk_print_cpu_list(){
     echo "    i686"
     echo "    i386"
     echo "    armv7"
+    echo "    armv7s"
+    echo "    arm64"
     echo ""
 }
 
@@ -164,6 +147,14 @@ ddk_print_targets(){
     #echo "    mingw-msys-x86"
     #echo "    mingw-msys-x86_64"
     echo "    ios-armv7"
+    echo "    ios-armv7s"
+    echo "    ios-arm64"
+    echo "    ios-i386"
+    echo "    ios-x86_64"
+    echo "    android-armv7"
+    echo "    android-arm64"
+    echo "    android-x86"
+    echo "    android-x86_64"
     echo ""
 }
 
