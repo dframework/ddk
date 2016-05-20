@@ -217,3 +217,110 @@ ddk_working(){
     return 0
 }
 
+ddk_sh_check_ddk_build()
+{
+    if [ "$DDK_ENV_HOME" = "" ]; then
+        ddk_exit 1 "Unknwon DDK_ENV_HOME."
+    fi
+
+    local ddk_shell="$DDK_ENV_HOME/build/make.sh"
+    if test ! -f $ddk_shell ; then
+        ddk_exit 1 "Not found ddk-build excutable shell script : $ddk_shell"
+    fi
+}
+
+ddk_android_working(){
+    ddk_sh_check_ddk_build
+
+    local D_TARGETS=""
+    local iserror=0
+    local list=
+    local val=
+    local target=
+    local testtargets=`$DDK_ENV_HOME/build/make.sh --print-targets`
+    for target in $testtargets
+    do
+       val=`expr "${target}" : '^android-\([[:print:]]\{1,\}\)'`
+       if [ "$val" != "" ]; then
+           case "${val}" in
+           armv7) D_TARGETS="${D_TARGETS} ${val}" ;;
+           arm64) D_TARGETS="${D_TARGETS} ${val}" ;;
+           x86) D_TARGETS="${D_TARGETS} ${val}" ;;
+           x86_64) D_TARGETS="${D_TARGETS} ${val}" ;;
+           *)
+               iserror=1
+               echo "Uknown target ${val}"
+           ;;
+           esac
+       fi
+    done
+
+    if [ $iserror -eq 1 ]; then
+        exit 1
+    fi
+
+    local addtarget=""
+    for target in $D_TARGETS
+    do
+        if [ "$addtarget" = "" ]; then
+            addtarget="--add-target=android-$target"
+        else
+            addtarget="${addtarget} --add-target=android-$target"
+        fi
+    done
+
+    if [ $DDK_ENV_DEBUG -eq 0 ]; then
+        $DDK_ENV_HOME/build/make.sh $addtarget
+    else
+        $DDK_ENV_HOME/build/make.sh --debug $addtarget
+    fi
+}
+
+ddk_ios_working(){
+    ddk_sh_check_ddk_build
+
+    local D_TARGETS=""
+    local iserror=0
+    local list=
+    local val=
+    local target=
+    local testtargets=`$DDK_ENV_HOME/build/make.sh --print-targets`
+    for target in $testtargets
+    do
+       val=`expr "${target}" : '^ios-\([[:print:]]\{1,\}\)'`
+       if [ "$val" != "" ]; then
+           case "${val}" in
+           armv7) D_TARGETS="${D_TARGETS} ${val}" ;;
+           armv7s) D_TARGETS="${D_TARGETS} ${val}" ;;
+           arm64) D_TARGETS="${D_TARGETS} ${val}" ;;
+           i386) D_TARGETS="${D_TARGETS} ${val}" ;;
+           x86_64) D_TARGETS="${D_TARGETS} ${val}" ;;
+           *)
+               iserror=1
+               echo "Uknown target ${val}"
+           ;;
+           esac
+       fi
+    done
+
+    if [ $iserror -eq 1 ]; then
+        exit 1
+    fi
+
+    local addtarget=""
+    for target in $D_TARGETS
+    do
+        if [ "$addtarget" = "" ]; then
+            addtarget="--add-target=ios-$target"
+        else
+            addtarget="${addtarget} --add-target=ios-$target"
+        fi
+    done
+
+    if [ $DDK_ENV_DEBUG -eq 0 ]; then
+        $DDK_ENV_HOME/build/make.sh $addtarget
+    else
+        $DDK_ENV_HOME/build/make.sh --debug $addtarget
+    fi
+}
+

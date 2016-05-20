@@ -489,7 +489,13 @@ ddk_make_base_environments
 
 ddkinfo
 
-ddk_working
+if [ "${DDK_ENV_CMD}" = "android" ]; then
+    ddk_android_working
+elif [ "${DDK_ENV_CMD}" = "ios" ]; then
+    ddk_ios_working
+else
+    ddk_working
+fi
 
 if [ $DDK_ENV_NO_PRINT -eq 0 ]; then
     echo "  OK"
