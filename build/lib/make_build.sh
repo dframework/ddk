@@ -15,11 +15,13 @@ CLEAR_VARS(){
 build_get_static_archives(){
     # $(build_get_static_archives "")
     # $1 : $tmp_static_short_libs
+    local libs="${1}"
     local archives=""
-    if [ "$1" != "" ]; then
+    if [ "${libs}" != "" ]; then
         case $DDK_ENV_TARGET_OS in
-        darwin|ios) archives="-Wl,-all_load $1" ;;
-        *) archives="-Wl,--whole-archive $1 -Wl,--no-whole-archive" ;;
+        darwin|ios) archives="-Wl,-all_load ${libs}" ;;
+        #darwin|ios) archives="-Wl,-all_load ${libs} -Wl,-noall_load" ;;
+        *) archives="-Wl,--whole-archive ${libs} -Wl,--no-whole-archive" ;;
         esac
     fi
     echo "${archives}"
@@ -442,6 +444,7 @@ ddk_build_last_object(){
 
     tmp_current=`pwd`
     cd "${DDK_ENV_TARGET_WORKING}/${DDK_ARG_DEST}"
+    #echo $tmp_ck_last_cmd
     $tmp_ck_last_cmd
     tmp_res=$?
     if [ $tmp_res -eq 0 ]; then
