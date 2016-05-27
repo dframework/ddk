@@ -284,6 +284,10 @@ ddk_compile_mk_set(){
     ;;
     esac
 
+    if [ "${tmp_pfix}" = "\"" ]; then
+        tmp_val=`echo "${tmp_val}" | sed -e 's/\"/\\\"/g'`
+    fi
+
     ddk_compile_add "${tmp_cmd}=${tmp_pfix}${tmp_val}${tmp_sfix}"
 
     case "${tmp_cmd}" in
