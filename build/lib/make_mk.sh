@@ -570,12 +570,18 @@ ddk_load_mk(){
       fi
     fi
 
-    if [ "$DDK_ENV_OSNAME" = "centos" ]; then
+    case "$DDK_ENV_OSNAME" in
+    centos|redhat)
         `echo -e ${tmp_mkbuf} > ${tmp_mk_output}`
-    else
+        res=$?  
+    ;;      
+    *)
         `echo ${tmp_mkbuf} > ${tmp_mk_output}`
-    fi
-    if [ $? -ne 0  ]; then
+        res=$?
+    ;;      
+    esac   
+
+    if [ $res -ne 0  ]; then
         ddk_exit 1 "error: write to ${tmp_mk_output}"
     fi
 

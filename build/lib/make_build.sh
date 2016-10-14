@@ -89,13 +89,18 @@ build_make_static_archives(){
         if [ "$tmp_addlibs" != "" ]; then
             local tmp_ddc_ar=""
             tmp_ddc_ar="${DDC_AR} -M"
-            if [ "$DDK_ENV_OSNAME" = "centos" ]; then
+
+            case "$DDK_ENV_OSNAME" in
+            centos|redhat)
                 `echo -e "${tmp_addlibs}" | ${tmp_ddc_ar}`
                 res=$?
-            else
+            ;;
+            ubuntu|*)
                 `echo "${tmp_addlibs}" | ${tmp_ddc_ar}`
                 res=$?
-            fi
+            ;;
+            esac
+
             if test -f tmp_ck_last_obj ; then
                 rm -rf $tmp_ck_last_obj
             fi

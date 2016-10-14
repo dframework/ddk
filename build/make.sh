@@ -66,9 +66,14 @@ case "${DDK_ENV_OSNAME}" in
     linux)
         if test -f "/etc/issue" ; then
             issue=`cat /etc/issue`
-            issue=`expr "$issue" : '^\([a-zA-Z0-0]\{1,\}\)[[:blank:]]\{1,\}'`
-            issue=`echo "$issue" | tr '[A-Z]' '[a-z]'`
-            DDK_ENV_OSNAME=$issue
+            issue=`expr "$issue" : '^\(Red Hat\)[[:blank:]]\{1,\}'`
+            if [ "{$issue}" != "" ]; then
+                DDK_ENV_OSNAME="redhat"
+            else
+                issue=`expr "$issue" : '^\([a-zA-Z0-0]\{1,\}\)[[:blank:]]\{1,\}'`
+                issue=`echo "$issue" | tr '[A-Z]' '[a-z]'`
+                DDK_ENV_OSNAME=$issue
+            fi
         fi
     ;;
 esac
