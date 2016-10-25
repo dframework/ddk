@@ -64,15 +64,19 @@ case "${DDK_ENV_OSNAME}" in
         DDC_SHARED_LIB_EXT="dylib"
     ;;
     linux)
-        if test -f "/etc/issue" ; then
-            issue=`cat /etc/issue`
-            issue=`expr "$issue" : '^\(Red Hat\)[[:blank:]]\{1,\}'`
-            if [ "{$issue}" != "" ]; then
-                DDK_ENV_OSNAME="redhat"
-            else
-                issue=`expr "$issue" : '^\([a-zA-Z0-0]\{1,\}\)[[:blank:]]\{1,\}'`
-                issue=`echo "$issue" | tr '[A-Z]' '[a-z]'`
-                DDK_ENV_OSNAME=$issue
+        if test -f "/etc/redhat-release" ; then
+            DDK_ENV_OSNAME="redhat"
+        else
+            if test -f "/etc/issue" ; then
+                issue=`cat /etc/issue`
+                #issue=`expr "$issue" : '^\(Red Hat\)[[:blank:]]\{1,\}'`
+                #if [ "{$issue}" != "" ]; then
+                    issue=`expr "$issue" : '^\([a-zA-Z0-0]\{1,\}\)[[:blank:]]\{1,\}'`
+                    issue=`echo "$issue" | tr '[A-Z]' '[a-z]'`
+                    DDK_ENV_OSNAME=$issue
+                #else
+                #    DDK_ENV_OSNAME="redhat"
+                #fi
             fi
         fi
     ;;
