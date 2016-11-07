@@ -106,8 +106,8 @@ build_make_static_archives(){
             fi
             ddk_exit $res "error: echo -e ${tmp_addlibs} | ${tmp_ddc_ar}"
         else
-            rm $tmp_ck_last_obj
-            ddk_exit $? "error: rm $tmp_ck_last_obj in $DDK_ENV_TARGET_BUILD"
+            rm -rf $tmp_ck_last_obj
+            ddk_exit $? "error: rm -rf $tmp_ck_last_obj in $DDK_ENV_TARGET_BUILD"
         fi
     fi
     cd $current
@@ -217,10 +217,10 @@ BUILD_SHARED_LIBRARY(){
         tmp_current=`pwd`
         cd $DDK_ENV_TARGET_BUILD
             if test -f "${tmp_mname}"; then
-                rm "$tmp_mname"
+                rm -rf "$tmp_mname"
             fi
             if test -f "$tmp_soname"; then
-                rm "$tmp_soname"
+                rm -rf "$tmp_soname"
             fi
             ln -s "${tmp_objname}" "${tmp_soname}"
             ln -s "${tmp_soname}" "${tmp_mname}"
@@ -444,7 +444,7 @@ ddk_build_last_object(){
     fi
 
     if test -f "${tmp_last_obj}"; then
-        rm "${tmp_last_obj}"
+        rm -rf "${tmp_last_obj}"
     fi
 
     tmp_current=`pwd`

@@ -38,7 +38,7 @@ ddk_plo_col_includes(){
 
         tmp_col_test="${tmp_col_test} ${tmp_x}"
     done < $tmp_plo_test
-    rm $tmp_plo_test
+    rm -rf $tmp_plo_test
 
     ###################################################
     for tmp_x in $tmp_col_test
@@ -99,9 +99,9 @@ ddk_plo_save(){
     tmp_time=$(ddk_call_mtime "$tmp_plo")
     if [ $tmp_time -ne $tmp_plo_max_time_includes ]; then
         if test -f ${tmp_plo}; then
-            rm "${tmp_plo}"
+            rm -rf "${tmp_plo}"
             if [ $? -ne 0 ]; then
-                ddk_exit 1 "rm \"${tmp_plo}\""
+                ddk_exit 1 "rm -rf \"${tmp_plo}\""
             fi
         fi
 

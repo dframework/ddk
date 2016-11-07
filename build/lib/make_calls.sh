@@ -242,8 +242,8 @@ call_package_sis_end(){
     ddk_exit $? "error: cat ${DDK_ENV_HOME}/sis/sis.sh ${tmp_pkg_path}/../${tmp_pkg_nm}.tar.gz > ${tmp_pkg_path}/../${tmp_pkg_nm}.sh"
     chmod 775 ${tmp_pkg_path}/../${tmp_pkg_nm}.sh
     ddk_exit $? "error: chmod 775 ${tmp_pkg_path}/../${tmp_pkg_nm}.sh"
-    rm ${tmp_pkg_path}/../${tmp_pkg_nm}.tar.gz
-    ddk_exit $? "error: rm ${tmp_pkg_path}/../${tmp_pkg_nm}.tar.gz"
+    rm -rf ${tmp_pkg_path}/../${tmp_pkg_nm}.tar.gz
+    ddk_exit $? "error: rm -rf ${tmp_pkg_path}/../${tmp_pkg_nm}.tar.gz"
     echo "    * create ${tmp_pkg_path}/../${tmp_pkg_nm}.sh ... OK"
 }
 

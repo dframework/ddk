@@ -174,7 +174,7 @@ ddk_sis_start(){
         else
             if [ $SIS_SAVE_WDIR -eq 0 ]; then
                 if [ $SIS_PWD_EQ -eq 0 ]; then
-                    rm $SIS_WORK_DIR/$SIS_SELF_NM
+                    rm -rf $SIS_WORK_DIR/$SIS_SELF_NM
                 fi
             fi
         fi
@@ -184,7 +184,7 @@ ddk_sis_start(){
         fi
         if [ $SIS_SAVE_WDIR -eq 0 ]; then
             if [ $SIS_PWD_EQ -eq 0 ]; then
-                rm $SIS_WORK_DIR/$SIS_SELF_NM
+                rm -rf $SIS_WORK_DIR/$SIS_SELF_NM
             fi
         fi
     fi

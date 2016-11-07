@@ -64,7 +64,9 @@ case "${DDK_ENV_OSNAME}" in
         DDC_SHARED_LIB_EXT="dylib"
     ;;
     linux)
-        if test -f "/etc/redhat-release" ; then
+        if test -f "/etc/centos-release" ; then
+            DDK_ENV_OSNAME="centos"
+        elif test -f "/etc/redhat-release" ; then
             DDK_ENV_OSNAME="redhat"
         else
             if test -f "/etc/issue" ; then
