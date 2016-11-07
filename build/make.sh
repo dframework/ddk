@@ -441,10 +441,9 @@ ddk_make_dir(){
 #
 #
 
-DDC_TEMP_ARGS=$@
 DDC_PWD=`pwd`
 xi=0
-for x in $DDC_TEMP_ARGS
+for x in "$@"
 do
     xn=`expr "$x" : '\(^--[0-9a-zA-Z_-]\{1,\}\)[=]*[[:print:]]*'`
     xv=`expr "$x" : '^--[0-9a-zA-Z_-]\{1,\}[=]\{1\}\([[:print:]]\{1,\}\)'`

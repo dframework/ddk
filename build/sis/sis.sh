@@ -3,7 +3,6 @@
 SIS_SELF=""
 SIS_SELF_NM=""
 SIS_SELF_PATH=""
-SIS_TEMP_ARGS=""
 SIS_PWD=""
 SIS_ENV_CMD=""
 SIS_WORK_DIR=""
@@ -191,7 +190,6 @@ ddk_sis_start(){
 }
 
 
-SIS_TEMP_ARGS=$@
 SIS_SELF=$0
 SIS_PWD=`pwd`
 SIS_PWD_EQ=0
@@ -212,7 +210,7 @@ fi
 cd $SIS_PWD
 
 xi=0
-for x in $SIS_TEMP_ARGS
+for x in "$@"
 do
     xn=`expr "$x" : '\(^--[0-9a-zA-Z_-]\{1,\}\)[=]*[[:print:]]*'`
     xv=`expr "$x" : '^--[0-9a-zA-Z_-]\{1,\}[=]\{1\}\([[:print:]]\{1,\}\)'`

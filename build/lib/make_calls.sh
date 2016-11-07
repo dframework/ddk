@@ -28,7 +28,7 @@ call_install_array(){
     tmp_dst=""
     tmp_cnt=$#
     tmp_rnd=0
-    for tmp_nm in $@
+    for tmp_nm in "$@"
     do
         tmp_rnd=$(($tmp_rnd+1))
         if [ $tmp_rnd -eq $tmp_cnt ]; then
@@ -37,11 +37,11 @@ call_install_array(){
     done
 
     if [ "$tmp_dst" = "" ]; then
-        ddk_exit 1 "error:: install $@"
+        ddk_exit 1 "error:: install \"$@\""
     fi
 
     tmp_rnd=0
-    for tmp_nm in $@
+    for tmp_nm in "$@"
     do
         tmp_rnd=$(($tmp_rnd+1))
         if [ $tmp_rnd -eq $tmp_cnt ]; then
@@ -53,7 +53,7 @@ call_install_array(){
 
 call_install(){
    if [ "${3}" != "" ]; then
-       call_install_array $@
+       call_install_array "$@"
        return $?
    fi
 
@@ -319,7 +319,7 @@ call_package_array(){
     tmp_dst=""
     tmp_cnt=$#
     tmp_rnd=0
-    for tmp_nm in $@
+    for tmp_nm in "$@"
     do
         tmp_rnd=$(($tmp_rnd+1))
         if [ $tmp_rnd -eq $tmp_cnt ]; then
@@ -328,11 +328,11 @@ call_package_array(){
     done
 
     if [ "$tmp_dst" = "" ]; then
-        ddk_exit 1 "error:: package $@"
+        ddk_exit 1 "error:: package \"$@\""
     fi
 
     tmp_rnd=0
-    for tmp_nm in $@
+    for tmp_nm in "$@"
     do
         tmp_rnd=$(($tmp_rnd+1))
         if [ $tmp_rnd -eq $tmp_cnt ]; then
@@ -344,7 +344,7 @@ call_package_array(){
 
 call_package(){
    if [ "${3}" != "" ]; then
-       call_package_array $@
+       call_package_array "$@"
        return $?
    fi
 

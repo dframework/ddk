@@ -141,7 +141,7 @@ main() {
 
 DDC_PWD=`pwd`
 xi=0
-for x in $@
+for x in "$@"
 do
     xn=`expr "$x" : '\(^--[0-9a-zA-Z_-]\+\)[=]*[[:print:]]*'`
     xv=`expr "$x" : '^--[0-9a-zA-Z_-]\+[=]\{1\}\([[:print:]]\+\)'`
