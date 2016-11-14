@@ -2,7 +2,8 @@
 
 DDK_NDK_HOME=""
 DDK_NDK_TOOLCHAINS_VERSION="4.9"
-DDK_NDK_PLATFORM_VERSIONS="24 23 21 19 18 17 16 15 14 13 12 9 8 5 4 3"
+#DDK_NDK_PLATFORM_VERSIONS="24 23 21 19 18 17 16 15 14 13 12 9 8 5 4 3"
+DDK_NDK_PLATFORM_VERSIONS="19 18 17 16 15 14 13 12 9 8 5 4 3"
 
 ddk_crosscp_init()
 {
@@ -164,7 +165,10 @@ ddk_crosscp_ready(){
 
     ddk_crosscp_find_platform_version "${PLATFORM}"
     VERSION=$?
-
+    if [ $VERSION -eq 0 ]; then
+        echo "Not found platform version for android. platform=${PLATFORM}"
+        exit 1
+    fi
 
     local DEVROOT=${DDK_NDK_HOME}/toolchains/${TOOLCHAINS}/prebuilt/${HOST_TAG}
     local SDKROOT=${DDK_NDK_HOME}/platforms/android-${VERSION}/arch-${PLATFORM}
