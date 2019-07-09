@@ -1,9 +1,10 @@
 #!/bin/sh
 
+DDK_NDK_LLVM_HOME=""
 DDK_NDK_HOME=""
 DDK_NDK_TOOLCHAINS_VERSION="4.9"
-#DDK_NDK_PLATFORM_VERSIONS="24 23 21 19 18 17 16 15 14 13 12 9 8 5 4 3"
-DDK_NDK_PLATFORM_VERSIONS="19 18 17 16 15 14 13 12 9 8 5 4 3"
+DDK_NDK_PLATFORM_VERSIONS="24 23 21 19 18 17 16 15 14 13 12 9 8 5 4 3"
+#DDK_NDK_PLATFORM_VERSIONS="19 18 17 16 15 14 13 12 9 8 5 4 3"
 
 ddk_crosscp_init()
 {
@@ -30,6 +31,10 @@ ddk_crosscp_init()
       echo "Not found ${DDK_NDK_HOME}/ndk-build."
       exit 1
   fi
+
+#  echo "DDK_NDK_HOME: ${DDK_NDK_HOME}"
+#  /home/chk/work/android-ndk-r20/toolchains/llvm/prebuilt/linux-x86_64/bin/
+
 }
 
 ddk_crosscp_get_hosttag() {
@@ -107,8 +112,12 @@ ddk_crosscp_ready(){
     local TOOLCHAINS_NM=""
     local TOOLCHAINS_VERSION=${DDK_NDK_TOOLCHAINS_VERSION}
     local VERSION=""
+    local ORIGIN_PREFIX=""
     local PREFIX=""
     local PLATFORM=""
+    local CC=""
+    local CXX=""
+    local CROSS_HOME=""
 
     local android_PWD=`pwd`
     case $android_PWD in
@@ -120,6 +129,7 @@ ddk_crosscp_ready(){
     esac
 
     local HOST_TAG=$(ddk_crosscp_get_hosttag)
+    
     if [ $? -ne 0 ]; then
         exit 1
     fi
@@ -176,8 +186,10 @@ ddk_crosscp_ready(){
     DDK_CROSS_CFLAGS="${cflags} -isysroot ${SDKROOT}"
     DDK_CROSS_LDFLAGS="${DDK_CROSS_LDFLAGS} -arch ${ARCH} --sysroot ${SDKROOT}"
     DDK_CROSS_HOME="${DEVROOT}/bin"
+    DDK_CROSS_ORIGIN_PREFIX="${PREFIX}"
     DDK_CROSS_PREFIX="${PREFIX}-"
     DDK_ENV_INCLUDES=""
+
     DDK_CC="gcc"
     DDK_CXX="g++"
 
@@ -192,8 +204,32 @@ ddk_crosscp_ready(){
     fi
 
     if test ! -f ${DDK_CROSS_HOME}/${DDK_CROSS_PREFIX}${DDK_CC} ; then
-        echo "Not found ${DDK_CROSS_HOME}/${DDK_CROSS_PREFIX}${DDK_CC}"
-        exit 1
+
+        if [ "${DDK_CROSS_ORIGIN_PREFIX}" = "arm-linux-androideabi" ]; then
+            ORIGIN_PREFIX="armv7a-linux-androideabi"
+            PREFIX="${ORIGIN_PREFIX}-"
+        elif [ "${DDK_CROSS_ORIGIN_PREFIX}" = "aarch64-linux-android" ]; then
+            ORIGIN_PREFIX="aarch64-linux-android"
+            PREFIX="${ORIGIN_PREFIX}-"
+        elif [ "${DDK_CROSS_ORIGIN_PREFIX}" = "i686-linux-android" ]; then
+            ORIGIN_PREFIX="i686-linux-android"
+            PREFIX="${ORIGIN_PREFIX}-"
+        elif [ "${DDK_CROSS_ORIGIN_PREFIX}" = "x86_64-linux-android" ]; then
+            ORIGIN_PREFIX="x86_64-linux-android"
+            PREFIX="${ORIGIN_PREFIX}-"
+        fi
+
+        CROSS_HOME="${DDK_NDK_HOME}/toolchains/llvm/prebuilt/${HOST_TAG}/bin"
+        CC="${ORIGIN_PREFIX}${VERSION}-clang"
+        CXX="${ORIGIN_PREFIX}${VERSION}-clang++"
+
+        if test ! -f "${CROSS_HOME}/${CC}" ; then
+            echo "Not found ${DDK_CROSS_HOME}/${DDK_CROSS_PREFIX}${DDK_CC} or ${CC}"
+	    exit 1
+	fi
+
+        DDK_REAL_CC="${CROSS_HOME}/${CC}"
+	DDK_REAL_CXX="${CROSS_HOME}/${CXX}"
     fi
 
 }

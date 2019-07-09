@@ -32,6 +32,10 @@ DDK_ARG_DEST=""
 DDK_SET_SUBDIRS=""
 DDK_SET_NO_SUBDIRS=""
 
+DDK_REAL_CC=""
+DDK_REAL_CXX=""
+DDK_REAL_AR=""
+
 DDK_CC="gcc"
 DDK_CXX="g++"
 DDK_AR="ar"
@@ -40,6 +44,7 @@ DDK_LIBTOOL="libtool"
 
 DDK_CROSS_HOME="/usr/bin"
 DDK_CROSS_PREFIX=""
+DDK_CROSS_ORIGIN_PREFIX=""
 
 DDC_CC=""
 DDC_CXX=""
@@ -52,7 +57,6 @@ DDC_LDFLAGS=""
 DDC_STATIC_LIB_EXT="a"
 DDC_SHARED_LIB_EXT="so"
 DDC_EXCUTE_EXT=""
-
 
 # -------------------------------------------------------------------
 tmp_unamea=`uname -a`
@@ -367,9 +371,20 @@ ddk_ready_base_environments(){
       cross_prefix="${DDK_CROSS_HOME}/${DDK_CROSS_PREFIX}"
     fi
 
-    DDC_CC="${cross_prefix}${DDK_CC}"
-    DDC_CXX="${cross_prefix}${DDK_CXX}"
-    DDC_AR="${cross_prefix}${DDK_AR}"
+    if [ "${DDK_REAL_CC}" = "" ]; then
+        DDC_CC="${cross_prefix}${DDK_CC}"
+        DDC_CXX="${cross_prefix}${DDK_CXX}"
+    else
+        DDC_CC="${DDK_REAL_CC}"
+        DDC_CXX="${DDK_REAL_CXX}"
+    fi
+
+    if [ "${DDK_REAL_AR}" = "" ]; then
+        DDC_AR="${cross_prefix}${DDK_AR}"
+    else
+        DDC_AR="${DDK_REAL_AR}"
+    fi
+
     DDC_RANLIB="${cross_prefix}${DDK_RANLIB}"
     DDC_LIBTOOL="${cross_prefix}${DDK_LIBTOOL}"
 }
