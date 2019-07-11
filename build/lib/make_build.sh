@@ -369,7 +369,7 @@ ddk_build_src(){
     tmp_cflags="${tmp_cflags} -DGLOBAL_PATCH_VERSION=${GLOBAL_PATCH_VERSION}"
 
     ${tmp_tool} -o ${tmp_obj} -c ${tmp_src} ${tmp_cflags}
-    #    echo  "    ${tmp_tool} -o ${tmp_obj} -c ${tmp_src} ${tmp_cflags}"
+    #    echo  "    ${tmp_tool} -o ${tmp_obj} -c ${tmp_src} ${tmp_cflags} ... make_build.sh"
 
     if [ $? -ne 0 ]; then
         ddk_exit 1 "    error: ${tmp_tool} -o ${tmp_obj} -c ${tmp_src} ${tmp_cflags}"
