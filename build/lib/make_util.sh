@@ -18,8 +18,9 @@ ddk_call_mtime(){
             mtime=`/usr/bin/stat -f '%m' ${1} 2>/dev/null`
             ;;
         *)
-            echo "0"
-            return
+            mtime=`/usr/bin/stat -c '%Y' ${1} 2>/dev/null`
+            #echo "0"
+            #return
             ;;
     esac
 

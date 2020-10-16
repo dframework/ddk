@@ -571,7 +571,7 @@ ddk_load_mk(){
     fi
 
     case "$DDK_ENV_OSNAME" in
-    centos|redhat)
+    centos|redhat|windows)
         `echo -e ${tmp_mkbuf} > ${tmp_mk_output}`
         res=$?  
     ;;      
